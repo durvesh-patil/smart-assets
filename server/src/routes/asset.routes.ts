@@ -1,10 +1,10 @@
-import { getAllAssets } from "../controllers/asset.controller"
+import { getAllAssets } from "../controllers/asset.controller";
+import { authenticateSession } from "../middlewares/session.middleware";
 
-const express = require("express")
+const express = require("express");
 
-const assetRouter = express.Router()
+const assetRouter = express.Router();
 
-assetRouter.get("/", getAllAssets)
+assetRouter.get("/", authenticateSession, getAllAssets);
 
-
-export default assetRouter
+export default assetRouter;
