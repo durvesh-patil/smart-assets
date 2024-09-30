@@ -66,7 +66,7 @@ export async function createUser(req, res) {
     }
 }
 
-export async function generateOtp(req, res, next) {
+export async function generateOtp(req, res) {
     try {
         const { email } = req.body;
         // Check if user is already present
@@ -107,7 +107,7 @@ export async function generateOtp(req, res, next) {
     }
 }
 
-export async function loginUser(req, res, next) {
+export async function loginUser(req, res) {
     const { email, password } = req.body;
     const user = await userRepository.findOne({ where: { email } });
     if (!user) {
