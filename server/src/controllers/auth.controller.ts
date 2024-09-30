@@ -7,6 +7,7 @@ const otpGenerator = require("otp-generator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+//POST /register
 export async function createUser(req, res) {
     try {
         const { email, password, otp } = req.body;
@@ -66,6 +67,7 @@ export async function createUser(req, res) {
     }
 }
 
+//POST /generate_otp
 export async function generateOtp(req, res) {
     try {
         const { email } = req.body;
@@ -107,6 +109,7 @@ export async function generateOtp(req, res) {
     }
 }
 
+//POST /login
 export async function loginUser(req, res) {
     const { email, password } = req.body;
     const user = await userRepository.findOne({ where: { email } });

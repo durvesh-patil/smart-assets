@@ -3,6 +3,7 @@ config()
 import app from "./config/app"
 import { AppDataSource } from "./database/data-source"
 
+
 AppDataSource.initialize().then(async () => {
     console.log("mysql database connected")
 }).catch(error => console.log(error))

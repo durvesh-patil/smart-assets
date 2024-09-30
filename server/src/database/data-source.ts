@@ -7,6 +7,8 @@ import { Otp } from "./entity/Otp";
 import { User } from "./entity/User";
 import { Asset } from "./entity/Asset";
 
+
+
 export const AppDataSource = new DataSource({
   type: "mysql",
   host: "localhost",
