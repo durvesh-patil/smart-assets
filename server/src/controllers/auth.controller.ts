@@ -7,7 +7,7 @@ const otpGenerator = require("otp-generator");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-export async function createUser(req, res, next) {
+export async function createUser(req, res) {
     try {
         const { email, password, otp } = req.body;
         // Check if all details are provided
