@@ -1,12 +1,11 @@
-import { createUser, generateOtp, loginUser } from "../controllers/auth.controller";
-const express = require("express")
+// src/routes/auth.routes.ts
 
-const authRouter = express.Router()
+import { Router } from "express";
+import { createUser, loginUser } from "../controllers/auth.controller";
 
-authRouter.post("/register", createUser)
+const authRouter = Router();
 
-authRouter.post("/generate_otp", generateOtp)
+authRouter.post("/register", createUser);
+authRouter.post("/login", loginUser);
 
-authRouter.post("/login", loginUser)
-
-export default authRouter
+export default authRouter;
