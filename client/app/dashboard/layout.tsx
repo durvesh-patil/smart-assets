@@ -46,7 +46,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
       </Toolbar>
       <Divider />
       <List>
-        {MenuItems.map((obj: menuItem, index: number) => (
+        {MenuItems.map((obj: menuItem) => (
           <Link
             href={obj.url}
             key={obj.name}
@@ -107,7 +107,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
           <Box component="nav">
             <Toolbar />
             <List>
-              {MenuItems.map((obj: menuItem, index: number) => (
+              {MenuItems.map((obj: menuItem) => (
                 <Link
                   href={obj.url}
                   key={obj.name}
@@ -123,7 +123,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
         </Grid2>
       )}
       <Grid2>
-        <Box component="main" sx={{ flexGrow: 1 }}>
+        <Box component="main" sx={{ margin: 2 }}>
           {children}
         </Box>
       </Grid2>
