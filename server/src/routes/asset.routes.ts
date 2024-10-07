@@ -5,6 +5,6 @@ const express = require("express");
 
 const assetRouter = express.Router();
 
-assetRouter.get("/", authenticateSession, getAllAssets);
+assetRouter.get("/", getAllAssets);
 
 export default assetRouter;
