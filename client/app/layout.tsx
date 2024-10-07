@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className="h-screen w-full">
         <ThemeProvider theme={theme}>
           <SnackbarProvider>{children}</SnackbarProvider>
         </ThemeProvider>

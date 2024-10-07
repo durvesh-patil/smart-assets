@@ -8,7 +8,7 @@ import {
   Toolbar,
   Divider,
   Typography,
-  Grid2 as Grid,
+  Grid2,
   Box,
   ListItemButton,
   useMediaQuery,
@@ -64,9 +64,9 @@ export default function SideBar({ children }: { children: ReactNode }) {
 
   console.log(isMobile);
   return (
-    <Grid container>
+    <Grid2 container>
       {isMobile ? (
-        <Grid item="true" sx={{ p: 1 }}>
+        <Grid2 item="true" sx={{ p: 1 }} height={0}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -91,9 +91,9 @@ export default function SideBar({ children }: { children: ReactNode }) {
           >
             {drawerContent}
           </Drawer>
-        </Grid>
+        </Grid2>
       ) : (
-        <Grid
+        <Grid2
           item="true"
           xs={12}
           sm={3}
@@ -106,9 +106,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
         >
           <Box component="nav">
             <Toolbar />
-            {/* <Typography>SmartAssets</Typography> */}
-
-            <List sx={{}}>
+            <List>
               {MenuItems.map((obj: menuItem, index: number) => (
                 <Link
                   href={obj.url}
@@ -122,11 +120,13 @@ export default function SideBar({ children }: { children: ReactNode }) {
               ))}
             </List>
           </Box>
-        </Grid>
+        </Grid2>
       )}
-      <Grid item="true" xs={12} size={12}>
-        <Box component="main">{children}</Box>
-      </Grid>
-    </Grid>
+      <Grid2>
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          {children}
+        </Box>
+      </Grid2>
+    </Grid2>
   );
 }
