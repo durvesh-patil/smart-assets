@@ -44,11 +44,9 @@ const seedDatabase = async () => {
     // Generate 20 assets
     const assets = Array.from({ length: 20 }).map((_, i) => {
       const asset = new Asset();
-      asset.name = `Asset${i + 1}`;
       asset.created_by = users[i]; // Set created_by as User object
-      asset.assigned_to = employees[i]; // Set assigned_to as Employee object
-      asset.status = i % 2 === 0 ? "active" : "inactive";
-      asset.notes = `Note for asset ${i + 1}`;
+      asset.created_at = new Date();
+      asset.last_updated_at = asset.created_at;
       asset.data = { RAM: `${8 + (i % 4)}GB`, CPU: `Intel i${5 + (i % 5)}` };
 
       return asset; // Return the asset object

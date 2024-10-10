@@ -3,6 +3,7 @@ import cors from "cors";
 import { config } from "dotenv";
 import authRouter from "../routes/auth.routes";
 import assetRouter from "../routes/asset.routes";
+import assetTemplateRouter from "../routes/assetTemplate.routes";
 config();
 
 const app = express();
@@ -16,5 +17,6 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/assets", assetRouter);
+app.use("/api/v1/templates", assetTemplateRouter);
 
 export default app;

@@ -38,7 +38,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
+  const [activeUrl, setActiveUrl] = useState<string>("assets");
   const drawerContent = (
     <div>
       <Toolbar>
@@ -113,7 +113,10 @@ export default function SideBar({ children }: { children: ReactNode }) {
                   key={obj.name}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <ListItemButton sx={{ width: "12rem" }}>
+                  <ListItemButton
+                    sx={{ width: "12rem" }}
+                    onClick={(e) => setActiveUrl(obj.name)}
+                  >
                     <ListItemText primary={obj.name} />
                   </ListItemButton>
                 </Link>
@@ -123,6 +126,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
         </Grid2>
       )}
       <Grid2>
+        <Box>{activeUrl}</Box>
         <Box component="main" sx={{ margin: 2 }}>
           {children}
         </Box>

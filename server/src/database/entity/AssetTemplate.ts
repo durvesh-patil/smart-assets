@@ -7,15 +7,14 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 import { User } from "./User";
-import { AssetTemplate } from "./AssetTemplate";
 
 @Entity()
-export class Asset {
+export class AssetTemplate {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => AssetTemplate, { nullable: false })
-  template_id: AssetTemplate;
+  @Column({ type: "varchar", length: 45 })
+  name: string;
 
   @ManyToOne(() => User, { nullable: true })
   created_by: User;
@@ -26,6 +25,9 @@ export class Asset {
   @UpdateDateColumn({ type: "timestamp", nullable: true })
   last_updated_at: Date;
 
+  @Column({ type: "varchar", length: 45, nullable: true })
+  notes: string;
+
   @Column({ type: "json", nullable: true })
-  data: any;
+  fields: any;
 }
