@@ -1,11 +1,4 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from "typeorm";
 import { User } from "./User";
 
 @Entity()
@@ -16,18 +9,15 @@ export class AssetTemplate {
   @Column({ type: "varchar", length: 45 })
   name: string;
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, { nullable: true, onDelete: "CASCADE" })
   created_by: User;
 
   @CreateDateColumn({ type: "timestamp" })
   created_at: Date;
 
-  @UpdateDateColumn({ type: "timestamp", nullable: true })
-  last_updated_at: Date;
+  @Column({ type: "json", nullable: true })
+  fields: any;
 
   @Column({ type: "varchar", length: 45, nullable: true })
   notes: string;
-
-  @Column({ type: "json", nullable: true })
-  fields: any;
 }

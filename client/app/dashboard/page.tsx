@@ -1,5 +1,8 @@
-import { Container } from "@mui/material";
+"use client";
+import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
-  return <Container>dashboard here</Container>;
+  const router = useRouter();
+  router.push("/dashboard/assets");
+  return <div></div>;
 }

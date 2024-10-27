@@ -1,4 +1,4 @@
-CREATE TABLE `user` (
+CREATE TABLE `asm`.`user` (
     `id` int NOT NULL AUTO_INCREMENT,
     `email` varchar(255) NOT NULL,
     `password_hash` varchar(255) NOT NULL,
