@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AssetTemplate } from "../database/entity/AssetTemplate";
 import { assetTemplateRepository } from "../database/data-source";
 
-// GET /asset-templates
+// GET /templates
 export async function getAllAssetTemplates(req: Request, res: Response) {
   try {
     const assetTemplates = await assetTemplateRepository.find();
@@ -18,7 +18,7 @@ export async function getAllAssetTemplates(req: Request, res: Response) {
   }
 }
 
-// GET /asset-templates/:id
+// GET /templates/:id
 export async function getAssetTemplateById(req: Request, res: Response) {
   const { id } = req.params;
   try {
@@ -43,7 +43,7 @@ export async function getAssetTemplateById(req: Request, res: Response) {
   }
 }
 
-// POST /asset-templates
+// POST /templates
 export async function createAssetTemplate(req: Request, res: Response) {
   const assetTemplateData = req.body; // Assume the asset template data is in the request body
   try {
@@ -62,7 +62,7 @@ export async function createAssetTemplate(req: Request, res: Response) {
   }
 }
 
-// PUT /asset-templates/:id
+// PUT /templates/:id
 export async function updateAssetTemplate(req: Request, res: Response) {
   const { id } = req.params;
   const updatedData = req.body; // Updated data from request body
@@ -92,9 +92,10 @@ export async function updateAssetTemplate(req: Request, res: Response) {
   }
 }
 
-// DELETE /asset-templates/:id
+// DELETE /templates/:id
 export async function deleteAssetTemplate(req: Request, res: Response) {
   const { id } = req.params;
+  console.log(id)
   try {
     const result = await assetTemplateRepository.delete({ id: Number(id) });
     if (result.affected === 0) {

@@ -11,19 +11,19 @@ const express = require("express");
 
 const assetTemplateRouter = express.Router();
 
-// GET /asset-templates
+// GET /templates
 assetTemplateRouter.get("/", getAllAssetTemplates);
 
-// GET /asset-templates/:id
+// GET /templates/:id
 assetTemplateRouter.get("/:id", getAssetTemplateById);
 
-// POST /asset-templates
+// POST /templates
 assetTemplateRouter.post("/", createAssetTemplate);
 
-// PUT /asset-templates/:id
+// PUT /templates/:id
 assetTemplateRouter.put("/:id", updateAssetTemplate);
 
-// DELETE /asset-templates/:id
+// DELETE /templates/:id
 assetTemplateRouter.delete("/:id", deleteAssetTemplate);
 
 export default assetTemplateRouter;
