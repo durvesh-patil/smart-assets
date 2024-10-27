@@ -62,7 +62,6 @@ export default function SideBar({ children }: { children: ReactNode }) {
     </div>
   );
 
-  console.log(isMobile);
   return (
     <Grid2 container sx={{ width: "100%" }}>
       {isMobile ? (
