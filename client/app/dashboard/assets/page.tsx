@@ -12,6 +12,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Autocomplete,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 
@@ -50,7 +51,7 @@ export default function Assets() {
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    console.log(name,value)
+    console.log(name, value);
     setFormValues((prevValues) => ({
       ...prevValues,
       [name]: value, // Update the specific field in the formValues state
@@ -65,42 +66,63 @@ export default function Assets() {
 
   return (
     <Box>
-      <Button variant="contained" color="primary" onClick={handleClickOpen}>
-        Add Asset
-      </Button>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Asset</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Asset Template</InputLabel>
-            <Select value={selectedTemplate} onChange={handleTemplateChange}>
-              {assetTemplates?.map((template) => (
-                <MenuItem key={template.id} value={template.id}>
-                  {template.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <form onSubmit={handleSubmit}>
-            {templateFields?.map((field, index) => (
-              <TextField
-                key={index}
-                label={field.label}
-                type={field.type}
-                fullWidth
-                margin="normal"
-                required={field.required}
-                name={field.label}
-                onChange={handleInputChange} // Handle change for inputs
-              />
-            ))}
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              Submit
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Box>assets page</Box>
+      <Box display={"flex"} width={"80vw"} justifyContent={"space-between"}>
+        <Box>
+          <Autocomplete
+            options={assetTemplates || []}
+            renderInput={(params) => (
+              <TextField {...params} label="Template..." />
+            )}
+            getOptionLabel={(obj) => obj.name}
+          />
+        </Box>
+        <Box>
+          <Button variant="contained" color="primary" onClick={handleClickOpen}>
+            Add Asset
+          </Button>
+          <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>Add New Asset</DialogTitle>
+            <DialogContent>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Asset Template</InputLabel>
+                <Select
+                  value={selectedTemplate}
+                  onChange={handleTemplateChange}
+                >
+                  {assetTemplates?.map((template) => (
+                    <MenuItem key={template.id} value={template.id}>
+                      {template.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <form onSubmit={handleSubmit}>
+                {templateFields?.map((field, index) => (
+                  <TextField
+                    key={index}
+                    label={field.label}
+                    type={field.type}
+                    fullWidth
+                    margin="normal"
+                    required={field.required}
+                    name={field.label}
+                    onChange={handleInputChange} // Handle change for inputs
+                  />
+                ))}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                >
+                  Submit
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </Box>
+      </Box>
+      <Box>assets table</Box>
     </Box>
   );
 }
