@@ -5,27 +5,27 @@ export class Employee {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: "int" })
   employeeNo: number;
 
-  @Column()
+  @Column({ type: "varchar", length: 255 })
   fullName: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 255 })
   joiningDate: string;
 
-  @Column({ default: "N/A" })
+  @Column({ type: "varchar", length: 255, default: "N/A" })
   resignDate: string;
 
-  @Column({ default: "N/A" })
+  @Column({ type: "varchar", length: 255 })
   department: string;
 
-  @Column({ default: "6" })
-  floor: "5" | "6";
+  @Column({ type: "varchar", length: 255 })
+  floor: string;
 
-  @Column({ default: "N/A" })
+  @Column({ type: "varchar", length: 255 })
   emailId: string;
 
-  @Column({ default: "N/A" })
+  @Column({ type: "varchar", length: 255, default: "N/A" })
   skypeId: string;
 }

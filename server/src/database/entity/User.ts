@@ -1,17 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
 export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @PrimaryGeneratedColumn()
-    id: number
+  @Column({ type: "varchar", length: 255, unique: true })
+  email: string;
 
-    @Column()
-    email: string
+  @Column({ type: "varchar", length: 255 })
+  password_hash: string;
 
-    @Column()
-    password_hash: string
-
-    @Column({ default: "user" })
-    role: "user" | "admin"
+  @Column({ type: "varchar", length: 255, default: "user" })
+  role: string;
 }

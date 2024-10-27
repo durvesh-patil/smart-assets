@@ -38,7 +38,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
+  const [activeUrl, setActiveUrl] = useState<string>("Assets");
   const drawerContent = (
     <div>
       <Toolbar>
@@ -64,7 +64,7 @@ export default function SideBar({ children }: { children: ReactNode }) {
 
   console.log(isMobile);
   return (
-    <Grid2 container>
+    <Grid2 container sx={{ width: "100%" }}>
       {isMobile ? (
         <Grid2 item="true" sx={{ p: 1 }} height={0}>
           <IconButton
@@ -104,8 +104,9 @@ export default function SideBar({ children }: { children: ReactNode }) {
             minHeight: "100vh",
           }}
         >
+          <Toolbar />
           <Box component="nav">
-            <Toolbar />
+            {/* <Toolbar /> */}
             <List>
               {MenuItems.map((obj: menuItem) => (
                 <Link
@@ -113,7 +114,10 @@ export default function SideBar({ children }: { children: ReactNode }) {
                   key={obj.name}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
-                  <ListItemButton sx={{ width: "12rem" }}>
+                  <ListItemButton
+                    sx={{ width: "12rem" }}
+                    onClick={(e) => setActiveUrl(obj.name)}
+                  >
                     <ListItemText primary={obj.name} />
                   </ListItemButton>
                 </Link>
@@ -122,7 +126,11 @@ export default function SideBar({ children }: { children: ReactNode }) {
           </Box>
         </Grid2>
       )}
-      <Grid2>
+      <Grid2 sx={{ width: "auto" }}>
+        <Box p={2}>
+          <Typography variant="h4">{activeUrl}</Typography>
+        </Box>
+        <Divider />
         <Box component="main" sx={{ margin: 2 }}>
           {children}
         </Box>

@@ -1,14 +1,13 @@
-import { Entity, Column, PrimaryColumn } from "typeorm"
+import { Entity, PrimaryColumn, Column, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class Otp {
+  @Column({ type: "int" })
+  otp: number;
 
-    @Column()
-    otp: number
+  @PrimaryColumn({ type: "varchar", length: 255 })
+  email: string;
 
-    @PrimaryColumn()
-    email: string
-
-    @Column({ default: new Date().toString() })
-    created_at: string
+  @CreateDateColumn({ type: "timestamp" })
+  created_at: Date;
 }
