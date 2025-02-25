@@ -1,6 +1,7 @@
 "use client";
 import useAssets from "@/hooks/useAssets";
 import useAssetTemplates from "@/hooks/useAssetTemplates";
+import { API_URL } from "@/lib/constants";
 import {
   Box,
   Button,
@@ -13,16 +14,24 @@ import {
   Select,
   MenuItem,
   Autocomplete,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import axios from "axios";
+import { useState } from "react";
 
 export default function Assets() {
   const { assetsList } = useAssets();
-  const { assetTemplates } = useAssetTemplates(); // Fetch asset templates
+  const { assetTemplates } = useAssetTemplates();
   const [open, setOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [templateFields, setTemplateFields] = useState([]);
-  const [formValues, setFormValues] = useState({}); // State to hold form field values
+  const [formValues, setFormValues] = useState({});
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -30,39 +39,51 @@ export default function Assets() {
 
   const handleClose = () => {
     setOpen(false);
-    setSelectedTemplate(""); // Reset selected template when closing
-    setTemplateFields([]); // Clear template fields
-    setFormValues({}); // Reset form values
+    setSelectedTemplate("");
+    setTemplateFields([]);
+    setFormValues({});
   };
 
-  const handleTemplateChange = (event) => {
-    const templateId = event.target.value;
+  const handleTemplateChange = (event, value) => {
+    const templateId = value?.id; // Get selected template ID from the value
+    console.log(event, value);
     setSelectedTemplate(templateId);
 
-    // Find the selected template and set its fields
     const selectedAssetTemplate = assetTemplates.find(
       (template) => template.id === templateId
     );
     if (selectedAssetTemplate) {
       setTemplateFields(selectedAssetTemplate.fields);
-      setFormValues({}); // Reset form values for the new template
+      setFormValues({});
     }
   };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    console.log(name, value);
     setFormValues((prevValues) => ({
       ...prevValues,
-      [name]: value, // Update the specific field in the formValues state
+      [name]: value,
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Here you can handle form submission, e.g., send data to your API
-    console.log("Form Values: ", formValues);
+    try {
+      const response = await axios.post(`${API_URL}/assets`, {
+        data: formValues,
+        templateId: selectedTemplate, // include template ID if needed by the backend
+      });
+      console.log("Asset created successfully:", response);
+      handleClose(); // Close the dialog after successful submission
+    } catch (error) {
+      console.error("Error creating asset:", error);
+    }
   };
+
+  // Filter assets based on the selected template ID
+  const filteredAssets = assetsList.filter(
+    (asset) => asset.template_id?.id === selectedTemplate // Match against template_id.id for populated template info
+  );
 
   return (
     <Box>
@@ -73,7 +94,10 @@ export default function Assets() {
             renderInput={(params) => (
               <TextField {...params} label="Template..." />
             )}
-            getOptionLabel={(obj) => obj.name}
+            getOptionLabel={(option) => option.name}
+            onChange={handleTemplateChange} // Update to handle selection
+            sx={{ width: "300px" }}
+
           />
         </Box>
         <Box>
@@ -84,17 +108,15 @@ export default function Assets() {
             <DialogTitle>Add New Asset</DialogTitle>
             <DialogContent>
               <FormControl fullWidth margin="normal">
-                <InputLabel>Asset Template</InputLabel>
-                <Select
-                  value={selectedTemplate}
-                  onChange={handleTemplateChange}
-                >
-                  {assetTemplates?.map((template) => (
-                    <MenuItem key={template.id} value={template.id}>
-                      {template.name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                <Autocomplete
+                  options={assetTemplates || []}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Template..." />
+                  )}
+                  getOptionLabel={(option) => option.name}
+                  onChange={handleTemplateChange} // Update to handle selection
+                  sx={{ width: "300px" }}
+                />
               </FormControl>
               <form onSubmit={handleSubmit}>
                 {templateFields?.map((field, index) => (
@@ -106,7 +128,7 @@ export default function Assets() {
                     margin="normal"
                     required={field.required}
                     name={field.label}
-                    onChange={handleInputChange} // Handle change for inputs
+                    onChange={handleInputChange}
                   />
                 ))}
                 <Button
@@ -122,7 +144,41 @@ export default function Assets() {
           </Dialog>
         </Box>
       </Box>
-      <Box>assets table</Box>
+
+      {/* Assets Table - only display if a template is selected */}
+      {selectedTemplate && (
+        <Box mt={4}>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Status</TableCell>
+                  {filteredAssets.length > 0 &&
+                    Object.keys(filteredAssets[0].data).map((field) => (
+                      <TableCell key={field}>
+                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                      </TableCell>
+                    ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredAssets.map((asset) => (
+                  <TableRow key={asset.id}>
+                    <TableCell>{asset.id}</TableCell>
+                    <TableCell>{asset.name}</TableCell>
+                    <TableCell>{asset.status}</TableCell>
+                    {Object.keys(asset.data).map((field) => (
+                      <TableCell key={field}>{asset.data[field]}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+      )}
     </Box>
   );
 }

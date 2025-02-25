@@ -38,6 +38,7 @@ function CreateTemplateForm() {
     assetTemplates: templates,
     handleDeleteTemplate,
     setAssetTemplates: setTemplates,
+    fetchTemplates,
   } = useAssetTemplates();
 
   useEffect(() => {
@@ -83,6 +84,7 @@ function CreateTemplateForm() {
       } else {
         // Create new template logic
         const res = await axios.post(`${API_URL}/templates`, template);
+        fetchTemplates();
         console.log(res);
       }
       // Optionally, refetch templates after creating or updating one

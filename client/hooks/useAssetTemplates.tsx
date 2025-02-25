@@ -29,5 +29,10 @@ export default function useAssetTemplates() {
     fetchTemplates();
   }, []);
 
-  return { assetTemplates, handleDeleteTemplate, setAssetTemplates };
+  return {
+    assetTemplates,
+    handleDeleteTemplate,
+    setAssetTemplates,
+    fetchTemplates,
+  };
 }
