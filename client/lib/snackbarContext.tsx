@@ -1,6 +1,6 @@
 "use client";
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { Snackbar, Alert } from "@mui/material";
+import React, { createContext, useContext, ReactNode } from "react";
+import { toast, Toaster } from "sonner";
 
 interface SnackbarContextType {
   showSnackbar: (
@@ -14,42 +14,32 @@ const SnackbarContext = createContext<SnackbarContextType | undefined>(
 );
 
 export function SnackbarProvider({ children }: { children: ReactNode }) {
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "error" | "warning" | "info"
-  >("success");
-
   const showSnackbar = (
     message: string,
     severity: "success" | "error" | "warning" | "info" = "success"
   ) => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const handleClose = () => {
-    setSnackbarOpen(false);
+    switch (severity) {
+      case "success":
+        toast.success(message);
+        break;
+      case "error":
+        toast.error(message);
+        break;
+      case "warning":
+        toast.warning(message);
+        break;
+      case "info":
+        toast.info(message);
+        break;
+      default:
+        toast(message);
+    }
   };
 
   return (
     <SnackbarContext.Provider value={{ showSnackbar }}>
       {children}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleClose}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      <Toaster position="bottom-center" />
     </SnackbarContext.Provider>
   );
 }

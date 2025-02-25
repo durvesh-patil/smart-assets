@@ -1,139 +1,116 @@
 "use client";
-import MenuIcon from "@mui/icons-material/Menu";
-import {
-  Drawer,
-  List,
-  ListItemText,
-  IconButton,
-  Toolbar,
-  Divider,
-  Typography,
-  Grid2,
-  Box,
-  ListItemButton,
-  useMediaQuery,
-} from "@mui/material";
-import { useState } from "react";
 import { ReactNode } from "react";
 import Link from "next/link";
-import { useTheme } from "@mui/material/styles";
+import { usePathname } from "next/navigation";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarProvider,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { LayoutDashboard, FileText, Users, Briefcase } from "lucide-react";
 
-const drawerWidth = 240;
-
-interface menuItem {
+interface MenuItem {
   name: string;
   url: string;
-  icon: string;
+  icon: React.ElementType;
 }
-const MenuItems = [
-  { name: "Assets", url: "/dashboard/assets", icon: "" },
-  { name: "Templates", url: "/dashboard/templates", icon: "" },
-  { name: "Employees", url: "/dashboard/employees", icon: "" },
+
+const MenuItems: MenuItem[] = [
+  { name: "Assets", url: "/dashboard/assets", icon: LayoutDashboard },
+  { name: "Templates", url: "/dashboard/templates", icon: FileText },
+  { name: "Employees", url: "/dashboard/employees", icon: Users },
 ];
 
-export default function SideBar({ children }: { children: ReactNode }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-  const [activeUrl, setActiveUrl] = useState<string>("Assets");
-  const drawerContent = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6">SmartAssets</Typography>
-      </Toolbar>
-      <Divider />
-      <List>
-        {MenuItems.map((obj: menuItem) => (
-          <Link
-            href={obj.url}
-            key={obj.name}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <ListItemButton>
-              <ListItemText primary={obj.name} />
-            </ListItemButton>
-          </Link>
-        ))}
-      </List>
-      <Divider />
+function SidebarLogo() {
+  const { state } = useSidebar();
+  
+  return (
+    <div className="flex items-center p-4">
+      <Briefcase className="h-6 w-6 mr-2" />
+      {state === "expanded" && (
+        <h2 className="text-xl font-bold">SmartAssets</h2>
+      )}
     </div>
   );
+}
+
+function SidebarCopyright() {
+  const { state } = useSidebar();
+  
+  return (
+    <div className="p-4 text-sm text-muted-foreground">
+      {state === "expanded" && "© 2024 SmartAssets"}
+    </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  
+  // Function to determine if a menu item is active
+  const isActive = (url: string) => {
+    return pathname.startsWith(url);
+  };
 
   return (
-    <Grid2 container sx={{ width: "100%" }}>
-      {isMobile ? (
-        <Grid2 item="true" sx={{ p: 1 }} height={0}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ ml: 1 }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Drawer
-            variant={isMobile ? "temporary" : "permanent"} // Toggle between permanent and temporary for mobile
-            open={mobileOpen || !isMobile} // On mobile, respect mobileOpen state
-            onClose={handleDrawerToggle} // Close drawer on mobile
-            ModalProps={{ keepMounted: true }} // Improve performance on mobile
-            sx={{
-              width: drawerWidth,
-              "& .MuiDrawer-paper": {
-                width: drawerWidth,
-                boxSizing: "border-box",
-              },
-            }}
-          >
-            {drawerContent}
-          </Drawer>
-        </Grid2>
-      ) : (
-        <Grid2
-          item="true"
-          xs={12}
-          sm={3}
-          md={2}
-          sx={{
-            borderRight: 1,
-            borderColor: "grey.300",
-            minHeight: "100vh",
-          }}
-        >
-          <Toolbar />
-          <Box component="nav">
-            {/* <Toolbar /> */}
-            <List>
-              {MenuItems.map((obj: menuItem) => (
-                <Link
-                  href={obj.url}
-                  key={obj.name}
-                  style={{ textDecoration: "none", color: "inherit" }}
-                >
-                  <ListItemButton
-                    sx={{ width: "12rem" }}
-                    onClick={(e) => setActiveUrl(obj.name)}
-                  >
-                    <ListItemText primary={obj.name} />
-                  </ListItemButton>
-                </Link>
-              ))}
-            </List>
-          </Box>
-        </Grid2>
-      )}
-      <Grid2 sx={{ width: "auto" }}>
-        <Box p={2}>
-          <Typography variant="h4">{activeUrl}</Typography>
-        </Box>
-        <Divider />
-        <Box component="main" sx={{ margin: 2 }}>
-          {children}
-        </Box>
-      </Grid2>
-    </Grid2>
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen">
+        <Sidebar collapsible="icon">
+          <SidebarHeader>
+            <SidebarLogo />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
+                Management
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {MenuItems.map((item) => (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url)}
+                      >
+                        <Link href={item.url}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter>
+            <SidebarCopyright />
+          </SidebarFooter>
+        </Sidebar>
+
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="p-6">
+            <SidebarTrigger className="mb-4" />
+            <h1 className="text-2xl font-bold mb-4">
+              {MenuItems.find(item => isActive(item.url))?.name || "Dashboard"}
+            </h1>
+            <div className="border-t pt-4">
+              {children}
+            </div>
+          </div>
+        </div>
+      </div>
+    </SidebarProvider>
   );
 }

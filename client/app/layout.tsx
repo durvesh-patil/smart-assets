@@ -9,6 +9,7 @@ import "./globals.css";
 import { ThemeProvider } from "@mui/material";
 import theme from "@/lib/theme";
 import { SnackbarProvider } from "@/lib/snackbarContext";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className="h-screen w-full">
         <ThemeProvider theme={theme}>
           <SnackbarProvider>{children}</SnackbarProvider>
+          <Toaster position="bottom-center" />
         </ThemeProvider>
       </body>
     </html>
