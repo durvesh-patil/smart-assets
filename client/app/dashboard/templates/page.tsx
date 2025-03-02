@@ -1,269 +1,303 @@
 "use client";
-import { FormEvent, useState, useEffect } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  Grid2,
-  FormControlLabel,
-  Switch,
-  FormControl,
-  InputLabel,
-  TextareaAutosize,
-  Box,
   Dialog,
-  DialogTitle,
   DialogContent,
-  Card,
-  CardContent,
-  Typography,
-} from "@mui/material";
-import axios from "axios";
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { API_URL } from "@/lib/constants";
-import { Delete, Edit } from "@mui/icons-material";
-import useAssetTemplates from "@/hooks/useAssetTemplates";
+import axios from "axios";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Plus, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-function CreateTemplateForm() {
-  const [template, setTemplate] = useState({
-    name: "",
-    note: "",
-    fields: [],
-  });
+interface TemplateField {
+  label: string;
+  type: string;
+  required: boolean;
+}
 
-  // const [templates, setTemplates] = useState([]); // State to hold fetched templates
-  const [open, setOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // State to track if editing
-  const {
-    assetTemplates: templates,
-    handleDeleteTemplate,
-    setAssetTemplates: setTemplates,
-    fetchTemplates,
-  } = useAssetTemplates();
+interface AssetTemplate {
+  _id: string;
+  name: string;
+  fields: TemplateField[];
+  created_at: string;
+  updated_at: string;
+}
+
+export default function Templates() {
+  const [templates, setTemplates] = useState<AssetTemplate[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [templateName, setTemplateName] = useState("");
+  const [fields, setFields] = useState<TemplateField[]>([]);
 
   useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/templates`);
-        console.log(response);
-        setTemplates(response.data.assetTemplates); // Assuming the response has a `templates` array
-      } catch (error) {
-        console.error("Error fetching templates:", error);
-      }
-    };
-
     fetchTemplates();
   }, []);
 
-  const addProperty = () => {
-    setTemplate((prev) => ({
-      ...prev,
-      fields: [
-        ...prev.fields,
-        { label: "", type: "text", options: [], required: false },
-      ],
-    }));
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/templates`);
+      setTemplates(response.data.assetTemplates || []);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      setTemplates([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePropertyChange = (index, key, value) => {
-    const updatedFields = [...template.fields];
-    updatedFields[index][key] = value;
-    setTemplate((prev) => ({ ...prev, fields: updatedFields }));
+  const handleAddField = () => {
+    setFields([...fields, { label: "", type: "text", required: false }]);
   };
 
-  const submitTemplate = async (e) => {
+  const handleFieldChange = (index: number, field: Partial<TemplateField>) => {
+    const newFields = [...fields];
+    newFields[index] = { ...newFields[index], ...field };
+    setFields(newFields);
+  };
+
+  const handleRemoveField = (index: number) => {
+    setFields(fields.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (isEditing) {
-        // Update template logic
-        const res = await axios.put(
-          `${API_URL}/templates/${template.id}`,
-          template
-        );
-        console.log(res);
-      } else {
-        // Create new template logic
-        const res = await axios.post(`${API_URL}/templates`, template);
-        fetchTemplates();
-        console.log(res);
-      }
-      // Optionally, refetch templates after creating or updating one
-      const response = await axios.get(`${API_URL}/templates`);
-      setTemplates(response.data.templates);
-      handleClose(); // Close the dialog after submitting
+      await axios.post(`${API_URL}/templates`, {
+        name: templateName,
+        fields: fields,
+      });
+      setDialogOpen(false);
+      setTemplateName("");
+      setFields([]);
+      fetchTemplates();
     } catch (error) {
-      console.error("Error creating/updating template:", error);
+      console.error("Error creating template:", error);
     }
   };
 
-  const handleClickOpen = (selectedTemplate = null) => {
-    if (selectedTemplate) {
-      setTemplate(selectedTemplate);
-      setIsEditing(true);
-    } else {
-      setTemplate({ name: "", note: "", fields: [] }); // Reset for new template
-      setIsEditing(false);
+  const handleDelete = async (templateId: string) => {
+    try {
+      await axios.delete(`${API_URL}/templates/${templateId}`);
+      fetchTemplates();
+    } catch (error) {
+      console.error("Error deleting template:", error);
     }
-    setOpen(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    // Reset template state when closing the dialog
-    setTemplate({ name: "", note: "", fields: [] });
-    setIsEditing(false); // Reset editing state
-  };
-
-  console.log(templates);
   return (
-    <Box>
-      <Box>
-        <Button variant="outlined" onClick={() => handleClickOpen()}>
-          Add Template
-        </Button>
-        <Dialog
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle>
-            {isEditing ? "Update Template" : "Create New Template"}
-          </DialogTitle>
+    <div className="flex flex-col gap-6 w-full">
+      <div className="flex justify-between items-center w-full">
+        <h2 className="text-lg font-semibold">Asset Templates</h2>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Template
+            </Button>
+          </DialogTrigger>
           <DialogContent>
-            <form onSubmit={submitTemplate}>
-              <Box>
-                <TextField
-                  label="Template Name"
-                  fullWidth
-                  value={template.name}
-                  onChange={(e) =>
-                    setTemplate({ ...template, name: e.target.value })
-                  }
-                  margin="normal"
+            <DialogHeader>
+              <DialogTitle>Create New Template</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Template Name"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  required
                 />
+              </div>
 
-                {template.fields?.map((property, index) => (
-                  <Grid2 container spacing={2} key={index} alignItems="center">
-                    <TextField
-                      label="Property Label"
-                      fullWidth
-                      value={property.label}
-                      onChange={(e) =>
-                        handlePropertyChange(index, "label", e.target.value)
-                      }
-                    />
-                    <FormControl fullWidth>
-                      <InputLabel>Type</InputLabel>
-                      <Select
-                        value={property.type}
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div key={index} className="flex gap-2 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Input
+                        placeholder="Field Label"
+                        value={field.label}
                         onChange={(e) =>
-                          handlePropertyChange(index, "type", e.target.value)
+                          handleFieldChange(index, { label: e.target.value })
                         }
-                      >
-                        <MenuItem value="text">Text</MenuItem>
-                        <MenuItem value="number">Number</MenuItem>
-                        <MenuItem value="select">Select</MenuItem>
-                      </Select>
-                    </FormControl>
-                    {property.type === "select" && (
-                      <TextField
-                        label="Options (comma-separated)"
-                        fullWidth
-                        value={property.options.join(", ")}
-                        onChange={(e) =>
-                          handlePropertyChange(
-                            index,
-                            "options",
-                            e.target.value.split(",")
-                          )
-                        }
+                        required
                       />
-                    )}
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={property.required}
+                      <div className="flex gap-2">
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                          value={field.type}
                           onChange={(e) =>
-                            handlePropertyChange(
-                              index,
-                              "required",
-                              e.target.checked
-                            )
+                            handleFieldChange(index, { type: e.target.value })
                           }
-                        />
-                      }
-                      label="Required"
-                    />
-                  </Grid2>
+                        >
+                          <option value="text">Text</option>
+                          <option value="number">Number</option>
+                          <option value="date">Date</option>
+                          <option value="email">Email</option>
+                        </select>
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={field.required}
+                            onChange={(e) =>
+                              handleFieldChange(index, {
+                                required: e.target.checked,
+                              })
+                            }
+                            className="h-4 w-4"
+                          />
+                          Required
+                        </label>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveField(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ))}
-                <TextareaAutosize
-                  minRows={3}
-                  style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "4px",
-                    padding: "8px",
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
-                  value={template.note}
-                  onChange={(e) =>
-                    setTemplate({ ...template, note: e.target.value })
-                  }
-                  placeholder="Add a note"
-                />
-              </Box>
+              </div>
 
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={addProperty}
-                style={{ marginTop: "20px" }}
-              >
-                Add Property
+              <Button type="button" variant="outline" onClick={handleAddField}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Field
               </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="secondary"
-                style={{ marginTop: "20px", marginLeft: "10px" }}
-              >
-                {isEditing ? "Update Template" : "Create Template"}
+
+              <Button type="submit" className="w-full">
+                Create Template
               </Button>
             </form>
           </DialogContent>
         </Dialog>
-      </Box>
+      </div>
 
-      {/* Display templates as cards */}
-      <Box mt={4} display="flex" flexDirection="column" gap={2}>
-        {templates?.map((template) => (
-          <Card key={template.id}>
-            <CardContent>
-              <Box
-                display={"flex"}
-                justifyContent={"space-between"}
-                alignItems={"center"}
-              >
-                <Box pr={"20px"}>
-                  <Typography variant="h5">{template.name}</Typography>
-                  {/* <Typography variant="body1">{template.notes}</Typography> */}
-                </Box>
-                <Box>
-                  <Button onClick={() => handleClickOpen(template)}>
-                    <Edit />
-                  </Button>
-                  <Button onClick={() => handleDeleteTemplate(template.id)}>
-                    <Delete />
-                  </Button>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    </Box>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Fields</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead className="w-[70px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {templates.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  {isLoading ? "Loading templates..." : "No templates found"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              templates.map((template) => (
+                <TableRow key={template._id}>
+                  <TableCell className="font-medium">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          {template._id.slice(0, 4)}...
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{template._id}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell>{template.name}</TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="cursor-help">
+                          {template.fields.length} fields
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            {template.fields.map((field, index) => (
+                              <p key={index}>
+                                {field.label} ({field.type})
+                                {field.required ? " *" : ""}
+                              </p>
+                            ))}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(template.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-destructive/90 hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Template</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete &ldquo;{template.name}&rdquo;? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(template._id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }
-
-export default CreateTemplateForm;
