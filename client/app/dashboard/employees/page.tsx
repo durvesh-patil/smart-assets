@@ -149,8 +149,13 @@ export default function Employees() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex justify-between items-center w-full">
-        <h2 className="text-lg font-semibold">Employee Management</h2>
+      <div className="flex justify-between items-start w-full">
+        <div className="space-y-0.5">
+          <h2 className="text-2xl font-bold tracking-tight">Employee Management</h2>
+          <p className="text-muted-foreground">
+            Manage and track employee information
+          </p>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild>
             <Button>

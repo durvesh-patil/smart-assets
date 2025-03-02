@@ -44,30 +44,32 @@ interface TemplateField {
 interface Asset {
   _id: string;
   template_id: {
-    id: string;
+    _id: string;
+    name: string;
+    fields: TemplateField[];
+  };
+  assigned_to?: {
+    _id: string;
+    fullName: string;
+  };
+  created_by?: {
+    _id: string;
     name: string;
   };
   data: Record<string, unknown>;
+  created_at: string;
+  last_updated_at: string;
 }
 
 interface AssetTemplate {
-  id: string;
-  name: string;
-  fields: TemplateField[];
-}
-
-interface APITemplate {
   _id: string;
   name: string;
   fields: TemplateField[];
-  created_at: string;
-  updated_at: string;
-  __v: number;
 }
 
 interface APIResponse {
   success: boolean;
-  assetTemplates: APITemplate[];
+  assetTemplates: AssetTemplate[];
 }
 
 export default function Assets() {
@@ -88,13 +90,7 @@ export default function Assets() {
     setIsLoading(true);
     try {
       const response = await axios.get<APIResponse>(`${API_URL}/templates`);
-      // Map the response data to match our expected format
-      const mappedTemplates = response.data.assetTemplates.map(template => ({
-        id: template._id,
-        name: template.name,
-        fields: template.fields
-      }));
-      setTemplates(mappedTemplates);
+      setTemplates(response.data.assetTemplates);
     } catch (error) {
       console.error("Error fetching templates:", error);
       setTemplates([]);
@@ -106,7 +102,7 @@ export default function Assets() {
   // Fetch assets for selected template
   const fetchAssets = async (templateId: string) => {
     try {
-      const response = await axios.get(`${API_URL}/assets?templateId=${templateId}`);
+      const response = await axios.get(`${API_URL}/assets?template_id=${templateId}`);
       setAssets(response.data.assets || []);
     } catch (error) {
       console.error("Error fetching assets:", error);
@@ -116,7 +112,7 @@ export default function Assets() {
 
   const handleTemplateChange = (value: string) => {
     setSelectedTemplate(value);
-    const template = templates.find(t => t.id === value);
+    const template = templates.find(t => t._id === value);
     if (template) {
       setTemplateFields(template.fields);
       fetchAssets(value);
@@ -134,10 +130,11 @@ export default function Assets() {
     e.preventDefault();
     try {
       await axios.post(`${API_URL}/assets`, {
-        data: formValues,
-        templateId: selectedTemplate,
+        template_id: selectedTemplate,
+        data: formValues
       });
       setDialogOpen(false);
+      setFormValues({});
       fetchAssets(selectedTemplate);
     } catch (error) {
       console.error("Error creating asset:", error);
@@ -146,8 +143,13 @@ export default function Assets() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex justify-between items-center w-full">
-        <h2 className="text-lg font-semibold">Asset Management</h2>
+      <div className="flex justify-between items-start w-full">
+        <div className="space-y-0.5">
+          <h2 className="text-2xl font-bold tracking-tight">Asset Management</h2>
+          <p className="text-muted-foreground">
+            Manage and track your organization&apos;s assets
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           <Select 
             value={selectedTemplate} 
@@ -160,7 +162,7 @@ export default function Assets() {
             <SelectContent>
               {templates && templates.length > 0 ? (
                 templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
+                  <SelectItem key={template._id} value={template._id}>
                     {template.name}
                   </SelectItem>
                 ))
@@ -250,7 +252,7 @@ export default function Assets() {
                     </TableCell>
                     {templateFields?.map((field) => (
                       <TableCell key={`${asset._id}-${field.label}`}>
-                        {String(asset.data[field.label] || '')}
+                        {String(asset.data?.[field.label] ?? '')}
                       </TableCell>
                     ))}
                   </TableRow>

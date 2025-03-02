@@ -16,7 +16,13 @@ import {
   SidebarGroupLabel,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, FileText, Users, Briefcase } from "lucide-react";
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
+  Briefcase,
+  Ticket,
+} from "lucide-react";
 
 interface MenuItem {
   name: string;
@@ -28,11 +34,12 @@ const MenuItems: MenuItem[] = [
   { name: "Assets", url: "/dashboard/assets", icon: LayoutDashboard },
   { name: "Templates", url: "/dashboard/templates", icon: FileText },
   { name: "Employees", url: "/dashboard/employees", icon: Users },
+  { name: "Requests", url: "/dashboard/requests", icon: Ticket },
 ];
 
 function SidebarLogo() {
   const { state } = useSidebar();
-  
+
   return (
     <div className="flex items-center p-4">
       <Briefcase className="h-6 w-6 mr-2" />
@@ -45,7 +52,7 @@ function SidebarLogo() {
 
 function SidebarCopyright() {
   const { state } = useSidebar();
-  
+
   return (
     <div className="p-4 text-sm text-muted-foreground">
       {state === "expanded" && "© 2024 SmartAssets"}
@@ -55,7 +62,7 @@ function SidebarCopyright() {
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  
+
   const isActive = (url: string) => pathname.startsWith(url);
 
   return (
@@ -79,7 +86,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         isActive={isActive(item.url)}
                         className="w-full"
                       >
-                        <Link href={item.url} className="flex items-center gap-2">
+                        <Link
+                          href={item.url}
+                          className="flex items-center gap-2"
+                        >
                           <item.icon className="h-4 w-4" />
                           <span className="flex-1 truncate">{item.name}</span>
                         </Link>
@@ -102,18 +112,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <div className="flex h-14 items-center gap-4 px-8">
               {/* <SidebarTrigger /> */}
               <div className="flex flex-1 items-center">
-                <h1 className="text-xl font-semibold">
-                  SmartAssets
-                </h1>
+                <h1 className="text-xl font-semibold">SmartAssets</h1>
               </div>
             </div>
           </header>
-          
+
           {/* Main Content */}
           <main className="flex-1 overflow-y-auto">
-            <div className="container mx-auto p-8">
-              {children}
-            </div>
+            <div className="container mx-auto p-8">{children}</div>
           </main>
         </div>
       </div>

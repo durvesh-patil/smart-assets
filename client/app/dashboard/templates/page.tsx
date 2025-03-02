@@ -118,8 +118,13 @@ export default function Templates() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <div className="flex justify-between items-center w-full">
-        <h2 className="text-lg font-semibold">Asset Templates</h2>
+      <div className="flex justify-between items-start w-full">
+        <div className="space-y-0.5">
+          <h2 className="text-2xl font-bold tracking-tight">Asset Templates</h2>
+          <p className="text-muted-foreground">
+            Create and manage templates for your organization&apos;s assets
+          </p>
+        </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button>

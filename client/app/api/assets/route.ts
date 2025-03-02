@@ -3,14 +3,24 @@ import dbConnect from "@/lib/mongodb";
 import Asset from "@/app/models/Asset";
 
 // GET /api/assets
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
-    const assets = await Asset.find()
-      .populate("template_id")
-      .populate("assigned_to")
-      .populate("created_by");
+    const { searchParams } = new URL(req.url);
+    const template_id = searchParams.get('template_id');
+
+    // Build query
+    const query = template_id ? { template_id } : {};
+
+    const assets = await Asset.find(query)
+      .populate({
+        path: 'template_id',
+        select: '_id name fields'
+      })
+      .populate('assigned_to', 'fullName')
+      .populate('created_by', 'name')
+      .sort({ created_at: -1 });
 
     return NextResponse.json(
       {
