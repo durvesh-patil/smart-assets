@@ -1,184 +1,220 @@
 "use client";
-import useAssets from "@/hooks/useAssets";
-import useAssetTemplates from "@/hooks/useAssetTemplates";
-import { API_URL } from "@/lib/constants";
+
+import { Button } from "@/components/ui/button";
 import {
-  Box,
-  Button,
   Dialog,
-  DialogTitle,
   DialogContent,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Autocomplete,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Paper,
-} from "@mui/material";
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { API_URL } from "@/lib/constants";
 import axios from "axios";
-import { useState } from "react";
+
+interface TemplateField {
+  label: string;
+  type: string;
+  required: boolean;
+}
+
+interface Asset {
+  id: string;
+  template_id: {
+    id: string;
+    name: string;
+  };
+  data: Record<string, unknown>;
+}
+
+interface AssetTemplate {
+  id: string;
+  name: string;
+  fields: TemplateField[];
+}
 
 export default function Assets() {
-  const { assetsList } = useAssets();
-  const { assetTemplates } = useAssetTemplates();
-  const [open, setOpen] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [templateFields, setTemplateFields] = useState([]);
-  const [formValues, setFormValues] = useState({});
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [templateFields, setTemplateFields] = useState<TemplateField[]>([]);
+  const [formValues, setFormValues] = useState<Record<string, unknown>>({});
+  const [assets, setAssets] = useState<Asset[]>([]);
+  const [templates, setTemplates] = useState<AssetTemplate[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleClickOpen = () => {
-    setOpen(true);
-  };
+  // Fetch templates on component mount
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
 
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedTemplate("");
-    setTemplateFields([]);
-    setFormValues({});
-  };
-
-  const handleTemplateChange = (event, value) => {
-    const templateId = value?.id; // Get selected template ID from the value
-    console.log(event, value);
-    setSelectedTemplate(templateId);
-
-    const selectedAssetTemplate = assetTemplates.find(
-      (template) => template.id === templateId
-    );
-    if (selectedAssetTemplate) {
-      setTemplateFields(selectedAssetTemplate.fields);
-      setFormValues({});
+  const fetchTemplates = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_URL}/templates`);
+      setTemplates(response.data.templates || []);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      setTemplates([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
+  // Fetch assets for selected template
+  const fetchAssets = async (templateId: string) => {
+    try {
+      const response = await axios.get(`${API_URL}/assets?templateId=${templateId}`);
+      setAssets(response.data.assets);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+    }
+  };
+
+  const handleTemplateChange = (value: string) => {
+    setSelectedTemplate(value);
+    const template = templates.find(t => t.id === value);
+    if (template) {
+      setTemplateFields(template.fields);
+      fetchAssets(value);
+    }
+  };
+
+  const handleInputChange = (name: string, value: string) => {
+    setFormValues(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      const response = await axios.post(`${API_URL}/assets`, {
+      await axios.post(`${API_URL}/assets`, {
         data: formValues,
-        templateId: selectedTemplate, // include template ID if needed by the backend
+        templateId: selectedTemplate,
       });
-      console.log("Asset created successfully:", response);
-      handleClose(); // Close the dialog after successful submission
+      setDialogOpen(false);
+      fetchAssets(selectedTemplate);
     } catch (error) {
       console.error("Error creating asset:", error);
     }
   };
 
-  // Filter assets based on the selected template ID
-  const filteredAssets = assetsList.filter(
-    (asset) => asset.template_id?.id === selectedTemplate // Match against template_id.id for populated template info
-  );
-
   return (
-    <Box>
-      <Box display={"flex"} width={"80vw"} justifyContent={"space-between"}>
-        <Box>
-          <Autocomplete
-            options={assetTemplates || []}
-            renderInput={(params) => (
-              <TextField {...params} label="Template..." />
-            )}
-            getOptionLabel={(option) => option.name}
-            onChange={handleTemplateChange} // Update to handle selection
-            sx={{ width: "300px" }}
+    <div className="flex flex-col gap-6 w-full">
+      <div className="flex justify-between items-center w-full">
+        <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+          <SelectTrigger className="w-[300px]">
+            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
+          </SelectTrigger>
+          <SelectContent>
+            {templates?.map((template) => (
+              <SelectItem key={template.id} value={template.id}>
+                {template.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          />
-        </Box>
-        <Box>
-          <Button variant="contained" color="primary" onClick={handleClickOpen}>
-            Add Asset
-          </Button>
-          <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Add New Asset</DialogTitle>
-            <DialogContent>
-              <FormControl fullWidth margin="normal">
-                <Autocomplete
-                  options={assetTemplates || []}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Template..." />
-                  )}
-                  getOptionLabel={(option) => option.name}
-                  onChange={handleTemplateChange} // Update to handle selection
-                  sx={{ width: "300px" }}
-                />
-              </FormControl>
-              <form onSubmit={handleSubmit}>
-                {templateFields?.map((field, index) => (
-                  <TextField
-                    key={index}
-                    label={field.label}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button disabled={isLoading || templates.length === 0}>Add Asset</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Asset</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Select 
+                value={selectedTemplate} 
+                onValueChange={handleTemplateChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates?.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {templateFields?.map((field) => (
+                <div key={field.label} className="space-y-2">
+                  <Input
                     type={field.type}
-                    fullWidth
-                    margin="normal"
+                    placeholder={field.label}
                     required={field.required}
-                    name={field.label}
-                    onChange={handleInputChange}
+                    onChange={(e) => handleInputChange(field.label, e.target.value)}
                   />
-                ))}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                >
-                  Submit
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </Box>
-      </Box>
+                </div>
+              ))}
 
-      {/* Assets Table - only display if a template is selected */}
+              <Button type="submit" className="w-full">
+                Submit
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       {selectedTemplate && (
-        <Box mt={4}>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
+        <div className="w-full rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">ID</TableHead>
+                {templateFields?.map((field) => (
+                  <TableHead key={field.label}>
+                    {field.label}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {assets.length === 0 ? (
                 <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Status</TableCell>
-                  {filteredAssets.length > 0 &&
-                    Object.keys(filteredAssets[0].data).map((field) => (
-                      <TableCell key={field}>
-                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                  <TableCell 
+                    colSpan={templateFields.length + 1} 
+                    className="text-center"
+                  >
+                    No assets found for this template
+                  </TableCell>
+                </TableRow>
+              ) : (
+                assets.map((asset) => (
+                  <TableRow key={asset.id}>
+                    <TableCell className="font-medium">{asset.id}</TableCell>
+                    {templateFields?.map((field) => (
+                      <TableCell key={field.label}>
+                        {String(asset.data[field.label] || '')}
                       </TableCell>
                     ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredAssets.map((asset) => (
-                  <TableRow key={asset.id}>
-                    <TableCell>{asset.id}</TableCell>
-                    <TableCell>{asset.name}</TableCell>
-                    <TableCell>{asset.status}</TableCell>
-                    {Object.keys(asset.data).map((field) => (
-                      <TableCell key={field}>{asset.data[field]}</TableCell>
-                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

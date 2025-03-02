@@ -57,19 +57,16 @@ function SidebarCopyright() {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   
-  // Function to determine if a menu item is active
-  const isActive = (url: string) => {
-    return pathname.startsWith(url);
-  };
+  const isActive = (url: string) => pathname.startsWith(url);
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen">
-        <Sidebar collapsible="icon">
+    <SidebarProvider defaultOpen={false}>
+      <div className="flex w-full">
+        <Sidebar collapsible="icon" className="max-w-[250px] bg-secondary">
           <SidebarHeader>
             <SidebarLogo />
           </SidebarHeader>
-          <SidebarContent>
+          <SidebarContent className="overflow-x-hidden">
             <SidebarGroup>
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
                 Management
@@ -81,10 +78,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       <SidebarMenuButton
                         asChild
                         isActive={isActive(item.url)}
+                        className="w-full"
                       >
-                        <Link href={item.url}>
+                        <Link href={item.url} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
-                          <span>{item.name}</span>
+                          <span className="flex-1 truncate">{item.name}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -99,16 +97,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </Sidebar>
 
         {/* Main Content */}
-        <div className="flex-1">
-          <div className="p-6">
-            <SidebarTrigger className="mb-4" />
-            <h1 className="text-2xl font-bold mb-4">
-              {MenuItems.find(item => isActive(item.url))?.name || "Dashboard"}
-            </h1>
-            <div className="border-t pt-4">
+        <div className="flex w-full flex-1 flex-col">
+          <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center gap-4 px-8">
+              <SidebarTrigger />
+              <h1 className="text-xl font-semibold">
+                {MenuItems.find(item => isActive(item.url))?.name || "Dashboard"}
+              </h1>
+            </div>
+          </header>
+          
+          <main className="flex-1">
+            <div className="flex-1 p-8">
               {children}
             </div>
-          </div>
+          </main>
         </div>
       </div>
     </SidebarProvider>
