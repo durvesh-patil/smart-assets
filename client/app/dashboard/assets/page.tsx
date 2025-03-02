@@ -27,6 +27,12 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { API_URL } from "@/lib/constants";
 import axios from "axios";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface TemplateField {
   label: string;
@@ -35,7 +41,7 @@ interface TemplateField {
 }
 
 interface Asset {
-  id: string;
+  _id: string;
   template_id: {
     id: string;
     name: string;
@@ -47,6 +53,20 @@ interface AssetTemplate {
   id: string;
   name: string;
   fields: TemplateField[];
+}
+
+interface APITemplate {
+  _id: string;
+  name: string;
+  fields: TemplateField[];
+  created_at: string;
+  updated_at: string;
+  __v: number;
+}
+
+interface APIResponse {
+  success: boolean;
+  assetTemplates: APITemplate[];
 }
 
 export default function Assets() {
@@ -66,8 +86,14 @@ export default function Assets() {
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/templates`);
-      setTemplates(response.data.templates || []);
+      const response = await axios.get<APIResponse>(`${API_URL}/templates`);
+      // Map the response data to match our expected format
+      const mappedTemplates = response.data.assetTemplates.map(template => ({
+        id: template._id,
+        name: template.name,
+        fields: template.fields
+      }));
+      setTemplates(mappedTemplates);
     } catch (error) {
       console.error("Error fetching templates:", error);
       setTemplates([]);
@@ -80,9 +106,10 @@ export default function Assets() {
   const fetchAssets = async (templateId: string) => {
     try {
       const response = await axios.get(`${API_URL}/assets?templateId=${templateId}`);
-      setAssets(response.data.assets);
+      setAssets(response.data.assets || []);
     } catch (error) {
       console.error("Error fetching assets:", error);
+      setAssets([]);
     }
   };
 
@@ -119,16 +146,26 @@ export default function Assets() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex justify-between items-center w-full">
-        <Select value={selectedTemplate} onValueChange={handleTemplateChange}>
+        <Select 
+          value={selectedTemplate} 
+          onValueChange={handleTemplateChange}
+          disabled={isLoading}
+        >
           <SelectTrigger className="w-[300px]">
             <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
           </SelectTrigger>
           <SelectContent>
-            {templates?.map((template) => (
-              <SelectItem key={template.id} value={template.id}>
-                {template.name}
+            {templates && templates.length > 0 ? (
+              templates.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="placeholder" disabled>
+                {isLoading ? "Loading..." : "No templates available"}
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
 
@@ -144,16 +181,23 @@ export default function Assets() {
               <Select 
                 value={selectedTemplate} 
                 onValueChange={handleTemplateChange}
+                disabled={isLoading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates?.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
+                  {templates && templates.length > 0 ? (
+                    templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="placeholder" disabled>
+                      {isLoading ? "Loading..." : "No templates available"}
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
 
@@ -181,7 +225,7 @@ export default function Assets() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="w-[200px]">ID</TableHead>
                 {templateFields?.map((field) => (
                   <TableHead key={field.label}>
                     {field.label}
@@ -201,10 +245,21 @@ export default function Assets() {
                 </TableRow>
               ) : (
                 assets.map((asset) => (
-                  <TableRow key={asset.id}>
-                    <TableCell className="font-medium">{asset.id}</TableCell>
+                  <TableRow key={asset._id}>
+                    <TableCell key={`${asset._id}-id`} className="font-medium">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger className="cursor-help">
+                            {asset._id.slice(0, 4)}...
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{asset._id}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
                     {templateFields?.map((field) => (
-                      <TableCell key={field.label}>
+                      <TableCell key={`${asset._id}-${field.label}`}>
                         {String(asset.data[field.label] || '')}
                       </TableCell>
                     ))}
