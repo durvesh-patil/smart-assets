@@ -33,6 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Plus } from "lucide-react";
 
 interface TemplateField {
   label: string;
@@ -146,78 +147,67 @@ export default function Assets() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex justify-between items-center w-full">
-        <Select 
-          value={selectedTemplate} 
-          onValueChange={handleTemplateChange}
-          disabled={isLoading}
-        >
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
-          </SelectTrigger>
-          <SelectContent>
-            {templates && templates.length > 0 ? (
-              templates.map((template) => (
-                <SelectItem key={template.id} value={template.id}>
-                  {template.name}
+        <h2 className="text-lg font-semibold">Asset Management</h2>
+        <div className="flex items-center gap-4">
+          <Select 
+            value={selectedTemplate} 
+            onValueChange={handleTemplateChange}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder={isLoading ? "Loading templates..." : "Select a template"} />
+            </SelectTrigger>
+            <SelectContent>
+              {templates && templates.length > 0 ? (
+                templates.map((template) => (
+                  <SelectItem key={template.id} value={template.id}>
+                    {template.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="placeholder" disabled>
+                  {isLoading ? "Loading..." : "No templates available"}
                 </SelectItem>
-              ))
-            ) : (
-              <SelectItem value="placeholder" disabled>
-                {isLoading ? "Loading..." : "No templates available"}
-              </SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+              )}
+            </SelectContent>
+          </Select>
 
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button disabled={isLoading || templates.length === 0}>Add Asset</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Asset</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Select 
-                value={selectedTemplate} 
-                onValueChange={handleTemplateChange}
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates && templates.length > 0 ? (
-                    templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="placeholder" disabled>
-                      {isLoading ? "Loading..." : "No templates available"}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-
-              {templateFields?.map((field) => (
-                <div key={field.label} className="space-y-2">
-                  <Input
-                    type={field.type}
-                    placeholder={field.label}
-                    required={field.required}
-                    onChange={(e) => handleInputChange(field.label, e.target.value)}
-                  />
-                </div>
-              ))}
-
-              <Button type="submit" className="w-full">
-                Submit
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={isLoading || templates.length === 0}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Asset
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Asset</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {templateFields?.map((field) => (
+                  <div key={field.label} className="space-y-2">
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      {field.label} {field.required && '*'}
+                    </label>
+                    <Input
+                      type={field.type}
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      required={field.required}
+                      onChange={(e) => handleInputChange(field.label, e.target.value)}
+                      className="mt-1.5"
+                    />
+                  </div>
+                ))}
+
+                <div className="pt-4">
+                  <Button type="submit" className="w-full">
+                    Add Asset
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {selectedTemplate && (

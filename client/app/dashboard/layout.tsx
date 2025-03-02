@@ -14,7 +14,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, FileText, Users, Briefcase } from "lucide-react";
@@ -61,7 +60,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="flex w-full">
+      <div className="flex h-screen w-full overflow-hidden">
         <Sidebar collapsible="icon" className="max-w-[250px] bg-secondary">
           <SidebarHeader>
             <SidebarLogo />
@@ -96,19 +95,23 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </SidebarFooter>
         </Sidebar>
 
-        {/* Main Content */}
-        <div className="flex w-full flex-1 flex-col">
+        {/* Main Content Area */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Header */}
           <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-14 items-center gap-4 px-8">
-              <SidebarTrigger />
-              <h1 className="text-xl font-semibold">
-                {MenuItems.find(item => isActive(item.url))?.name || "Dashboard"}
-              </h1>
+              {/* <SidebarTrigger /> */}
+              <div className="flex flex-1 items-center">
+                <h1 className="text-xl font-semibold">
+                  SmartAssets
+                </h1>
+              </div>
             </div>
           </header>
           
-          <main className="flex-1">
-            <div className="flex-1 p-8">
+          {/* Main Content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="container mx-auto p-8">
               {children}
             </div>
           </main>
