@@ -31,10 +31,10 @@ interface MenuItem {
 }
 
 const MenuItems: MenuItem[] = [
-  { name: "Assets", url: "/dashboard/assets", icon: LayoutDashboard },
-  { name: "Templates", url: "/dashboard/templates", icon: FileText },
-  { name: "Employees", url: "/dashboard/employees", icon: Users },
-  { name: "Requests", url: "/dashboard/requests", icon: Ticket },
+  { name: "Assets", url: "/admin/dashboard/assets", icon: LayoutDashboard },
+  { name: "Templates", url: "/admin/dashboard/templates", icon: FileText },
+  { name: "Employees", url: "/admin/dashboard/employees", icon: Users },
+  { name: "Requests", url: "/admin/dashboard/requests", icon: Ticket },
 ];
 
 function SidebarLogo() {
