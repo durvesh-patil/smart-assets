@@ -38,14 +38,13 @@ export default function AdminLogin() {
         // Store the token
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        
+        localStorage.setItem("role", response.data.user.role);
         // Redirect to dashboard
-        router.push("/dashboard");
+        router.push("/admin/dashboard");
       }
     } catch (error: any) {
       setError(
-        error.response?.data?.message || 
-        "An error occurred during login"
+        error.response?.data?.message || "An error occurred during login"
       );
     } finally {
       setIsLoading(false);
@@ -113,4 +112,4 @@ export default function AdminLogin() {
       </Card>
     </div>
   );
-} 
+}
