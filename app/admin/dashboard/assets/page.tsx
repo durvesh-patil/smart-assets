@@ -131,6 +131,7 @@ export default function Assets() {
     try {
       await axios.post(`${API_URL}/assets`, {
         template_id: selectedTemplate,
+        name: formValues["Name"],
         data: formValues
       });
       setDialogOpen(false);
@@ -218,7 +219,7 @@ export default function Assets() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[200px]">ID</TableHead>
-                {templateFields?.map((field) => (
+                {templateFields?.filter(field => field.required || field.label !== "Name").map((field) => (
                   <TableHead key={field.label}>
                     {field.label}
                   </TableHead>
@@ -250,7 +251,7 @@ export default function Assets() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                    {templateFields?.map((field) => (
+                    {templateFields?.filter(field => field.required || field.label !== "Name").map((field) => (
                       <TableCell key={`${asset._id}-${field.label}`}>
                         {String(asset.data?.[field.label] ?? '')}
                       </TableCell>

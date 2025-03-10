@@ -13,6 +13,9 @@ export interface IAsset extends Document {
 }
 
 const AssetSchema: Schema = new Schema({
+  name:{
+    type: String,
+  },
   created_by: { 
     type: Schema.Types.ObjectId, 
     ref: 'User',

@@ -28,12 +28,27 @@ export async function GET(req: NextRequest) {
       .populate('employee', 'employeeNo fullName')
       .populate('transfer_to', 'employeeNo fullName')
       .populate('approved_by', 'employeeNo fullName')
-      .populate('asset_template', 'name')
+      .populate({
+        path: 'asset_id',
+        model: 'Asset',
+        select: 'name template_id data',
+        populate: {
+          path: 'template_id',
+          model: 'AssetTemplate',
+          select: 'name fields'
+        }
+      })
       .sort({ created_at: -1 });
+
+    // Transform the response to match the expected format
+    const transformedRequests = requests.map(request => ({
+      ...request.toObject(),
+      asset: request.asset_id
+    }));
     
     return NextResponse.json({
       success: true,
-      requests
+      requests: transformedRequests
     }, { status: 200 });
   } catch (error) {
     console.error('Error fetching requests:', error);
@@ -55,15 +70,29 @@ export async function POST(req: NextRequest) {
     const request = await Request.create(body);
     
     // Populate references for response
-    const populatedRequest = await request
+    const populatedRequest = await Request.findById(request._id)
       .populate('employee', 'employeeNo fullName')
       .populate('transfer_to', 'employeeNo fullName')
-      .populate('asset_template', 'name')
-      .execPopulate();
+      .populate({
+        path: 'asset_id',
+        model: 'Asset',
+        select: 'name template_id data',
+        populate: {
+          path: 'template_id',
+          model: 'AssetTemplate',
+          select: 'name fields'
+        }
+      });
+
+    // Transform the response to match the expected format
+    const transformedRequest = {
+      ...populatedRequest.toObject(),
+      asset: populatedRequest.asset_id
+    };
 
     return NextResponse.json({
       success: true,
-      request: populatedRequest
+      request: transformedRequest
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating request:', error);

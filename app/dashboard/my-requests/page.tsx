@@ -26,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { RequestType, RequestStatus } from "@/app/types/request";
@@ -36,9 +35,19 @@ interface Request {
   request_type: RequestType;
   status: RequestStatus;
   asset_id: string;
-  asset_template: {
+  asset: {
     _id: string;
-    name: string;
+    name?: string;
+    template_id: {
+      _id: string;
+      name: string;
+      fields: {
+        label: string;
+        type: string;
+        required: boolean;
+      }[];
+    };
+    data: Record<string, string | number | boolean | null>;
   };
   reason: string;
   notes?: string;
@@ -47,35 +56,36 @@ interface Request {
 
 interface Asset {
   _id: string;
+  name?: string;
   template_id: {
     _id: string;
     name: string;
+    fields: {
+      label: string;
+      type: string;
+      required: boolean;
+    }[];
   };
-}
-
-interface AssetTemplate {
-  _id: string;
-  name: string;
+  assigned_to: string | null;
+  data: Record<string, string | number | boolean | null>;
 }
 
 export default function MyRequests() {
   const [requests, setRequests] = useState<Request[]>([]);
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [templates, setTemplates] = useState<AssetTemplate[]>([]);
+  const [assignedAssets, setAssignedAssets] = useState<Asset[]>([]);
+  const [unassignedAssets, setUnassignedAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     request_type: "",
     asset_id: "",
-    asset_template: "",
     reason: "",
-    notes: "",
+    notes: ""
   });
 
   useEffect(() => {
     fetchMyRequests();
     fetchMyAssets();
-    fetchTemplates();
   }, []);
 
   const fetchMyRequests = async () => {
@@ -94,21 +104,25 @@ export default function MyRequests() {
   const fetchMyAssets = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const response = await axios.get(`${API_URL}/assets/my-assets/${user.id}`);
-      setAssets(response.data.assets || []);
+      
+      if (!user.id) {
+        console.error("User not logged in");
+        setAssignedAssets([]);
+        setUnassignedAssets([]);
+        return;
+      }
+
+      // Fetch assigned assets
+      const assignedResponse = await axios.get(`${API_URL}/assets/my-assets/${user.id}`);
+      setAssignedAssets(assignedResponse.data.assets || []);
+
+      // Fetch unassigned assets
+      const unassignedResponse = await axios.get(`${API_URL}/assets/unassigned`);
+      setUnassignedAssets(unassignedResponse.data.assets || []);
     } catch (error) {
       console.error("Error fetching assets:", error);
-      setAssets([]);
-    }
-  };
-
-  const fetchTemplates = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/templates`);
-      setTemplates(response.data.assetTemplates || []);
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      setTemplates([]);
+      setAssignedAssets([]);
+      setUnassignedAssets([]);
     }
   };
 
@@ -123,17 +137,27 @@ export default function MyRequests() {
     e.preventDefault();
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
+      
+      // Get the selected asset
+      const selectedAsset = formData.request_type === RequestType.TRANSFER
+        ? unassignedAssets.find(a => a._id === formData.asset_id)
+        : assignedAssets.find(a => a._id === formData.asset_id);
+
       await axios.post(`${API_URL}/requests`, {
-        ...formData,
+        request_type: formData.request_type,
+        asset_id: formData.asset_id,
+        reason: formData.reason,
+        notes: formData.notes,
         employee: user.id,
+        asset_template: selectedAsset?.template_id._id
       });
+
       setDialogOpen(false);
       setFormData({
         request_type: "",
         asset_id: "",
-        asset_template: "",
         reason: "",
-        notes: "",
+        notes: ""
       });
       fetchMyRequests();
     } catch (error) {
@@ -154,6 +178,27 @@ export default function MyRequests() {
       default:
         return "text-yellow-600";
     }
+  };
+
+  const getAssetDisplayName = (asset: Asset | Request['asset']) => {
+    // First try to use the asset name
+    if (asset.name) {
+      return asset.name;
+    }
+
+    // Then try to find the "Name" field in data
+    if (asset.data?.Name) {
+      return asset.data.Name;
+    }
+
+    // Finally fall back to template name with first required field value
+    const firstRequiredField = asset.template_id.fields.find(field => field.required);
+    if (firstRequiredField && asset.data?.[firstRequiredField.label]) {
+      return `${asset.template_id.name} - ${asset.data[firstRequiredField.label]}`;
+    }
+
+    // If nothing else, just show template name
+    return asset.template_id.name;
   };
 
   return (
@@ -213,9 +258,9 @@ export default function MyRequests() {
                       <SelectValue placeholder="Select asset" />
                     </SelectTrigger>
                     <SelectContent>
-                      {assets.map((asset) => (
+                      {assignedAssets.map((asset) => (
                         <SelectItem key={asset._id} value={asset._id}>
-                          {asset.template_id.name}
+                          {getAssetDisplayName(asset)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -224,38 +269,27 @@ export default function MyRequests() {
               )}
 
               {formData.request_type === RequestType.TRANSFER && (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Asset to Transfer</label>
-                    <Select
-                      value={formData.asset_id}
-                      onValueChange={(value) =>
-                        handleInputChange("asset_id", value)
-                      }
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select asset" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {assets.map((asset) => (
-                          <SelectItem key={asset._id} value={asset._id}>
-                            {asset.template_id.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Transfer To</label>
-                    <Input
-                      placeholder="Employee ID"
-                      value={formData.notes}
-                      onChange={(e) => handleInputChange("notes", e.target.value)}
-                      required
-                    />
-                  </div>
-                </>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Asset to Transfer</label>
+                  <Select
+                    value={formData.asset_id}
+                    onValueChange={(value) =>
+                      handleInputChange("asset_id", value)
+                    }
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unassigned asset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {unassignedAssets.map((asset) => (
+                        <SelectItem key={asset._id} value={asset._id}>
+                          {getAssetDisplayName(asset)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
 
               {formData.request_type === RequestType.RETURN && (
@@ -272,9 +306,9 @@ export default function MyRequests() {
                       <SelectValue placeholder="Select asset" />
                     </SelectTrigger>
                     <SelectContent>
-                      {assets.map((asset) => (
+                      {assignedAssets.map((asset) => (
                         <SelectItem key={asset._id} value={asset._id}>
-                          {asset.template_id.name}
+                          {getAssetDisplayName(asset)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -330,7 +364,9 @@ export default function MyRequests() {
                   <TableCell className="capitalize">
                     {request.request_type}
                   </TableCell>
-                  <TableCell>{request.asset_template.name}</TableCell>
+                  <TableCell>
+                    {request.asset ? getAssetDisplayName(request.asset) : 'N/A'}
+                  </TableCell>
                   <TableCell>{request.reason}</TableCell>
                   <TableCell>
                     <span className={getStatusColor(request.status)}>
