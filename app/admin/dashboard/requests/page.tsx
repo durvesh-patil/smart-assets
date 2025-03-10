@@ -400,7 +400,7 @@ export default function Requests() {
                       </Button>
                     </CardTitle>
                     <CardDescription>
-                      From: {request.employee.fullName}
+                      From: {request.employee?.fullName}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -518,7 +518,7 @@ export default function Requests() {
                         </TooltipProvider>
                       </TableCell>
                       <TableCell className="capitalize">{request.request_type}</TableCell>
-                      <TableCell>{request.employee.fullName}</TableCell>
+                      <TableCell>{request.employee?.fullName}</TableCell>
                       <TableCell>
                         <TooltipProvider>
                           <Tooltip>

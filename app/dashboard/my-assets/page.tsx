@@ -17,9 +17,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 interface Asset {
   _id: string;
+  name?: string;
   template_id: {
     _id: string;
     name: string;
@@ -30,6 +32,8 @@ interface Asset {
     }[];
   };
   data: Record<string, unknown>;
+  created_at: string;
+  last_updated_at: string;
 }
 
 export default function MyAssets() {
@@ -53,6 +57,38 @@ export default function MyAssets() {
     }
   };
 
+  const getAssetDisplayName = (asset: Asset) => {
+    console.log(asset)
+    // First try to use the asset name
+    if (asset.name) {
+      return asset.name;
+    }
+
+    // Then try to find the "Name" field in data
+    if (asset.data?.Name) {
+      return asset.data.Name;
+    }
+
+    // Finally fall back to template name with first required field value
+    const firstRequiredField = asset.template_id.fields.find(field => field.required);
+    if (firstRequiredField && asset.data?.[firstRequiredField.label]) {
+      return `${asset.template_id.name} - ${asset.data[firstRequiredField.label]}`;
+    }
+
+    // If nothing else, just show template name
+    return asset.template_id.name;
+  };
+
+  const getImportantFields = (asset: Asset) => {
+    // Filter out the Name field since we're showing it separately
+    return asset.template_id.fields
+      .filter(field => field.required && field.label !== "Name")
+      .map(field => ({
+        label: field.label,
+        value: asset.data[field.label] || "N/A"
+      }));
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex justify-between items-start">
@@ -68,49 +104,63 @@ export default function MyAssets() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">ID</TableHead>
-              <TableHead>Template</TableHead>
-              <TableHead>Details</TableHead>
+              <TableHead>Asset Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Key Details</TableHead>
+              <TableHead>Assigned Date</TableHead>
+              <TableHead className="w-[100px]">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center">
+                <TableCell colSpan={5} className="text-center">
                   Loading assets...
                 </TableCell>
               </TableRow>
             ) : assets.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center">
+                <TableCell colSpan={5} className="text-center">
                   No assets assigned to you
                 </TableCell>
               </TableRow>
             ) : (
               assets.map((asset) => (
                 <TableRow key={asset._id}>
-                  <TableCell>
+                  <TableCell className="font-medium">
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger className="cursor-help">
-                          {asset._id.slice(0, 4)}...
+                        <TooltipTrigger className="cursor-help text-left">
+                          {getAssetDisplayName(asset)}
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>{asset._id}</p>
+                          <p>Asset ID: {asset._id}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
-                  <TableCell>{asset.template_id.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">
+                      {asset.template_id.name}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      {asset.template_id.fields.map((field) => (
-                        <div key={field.label} className="text-sm">
-                          <span className="font-medium">{field.label}:</span>{" "}
-                          {String(asset.data[field.label] || "N/A")}
+                      {getImportantFields(asset).map(({ label, value }) => (
+                        <div key={label} className="text-sm">
+                          <span className="font-medium">{label}:</span>{" "}
+                          {String(value)}
                         </div>
                       ))}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(asset.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="success">
+                      Active
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))

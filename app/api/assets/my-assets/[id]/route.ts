@@ -22,7 +22,6 @@ export async function GET(req: NextRequest, { params }: Params) {
         select: '_id name fields'
       })
       .sort({ created_at: -1 });
-
     return NextResponse.json(
       {
         success: true,
