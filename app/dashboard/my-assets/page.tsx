@@ -18,6 +18,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { RequestType } from "@/app/types/request";
 
 interface Asset {
   _id: string;
@@ -39,6 +49,10 @@ interface Asset {
 export default function MyAssets() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [returnReason, setReturnReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchMyAssets();
@@ -57,8 +71,32 @@ export default function MyAssets() {
     }
   };
 
-  const getAssetDisplayName = (asset: Asset) => {
-    console.log(asset)
+  const handleReturnRequest = async () => {
+    if (!selectedAsset || !returnReason.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      await axios.post(`${API_URL}/requests`, {
+        request_type: RequestType.RETURN,
+        asset_id: selectedAsset._id,
+        reason: returnReason,
+        asset_template: selectedAsset.template_id._id,
+        employee: user.id
+      });
+
+      // Reset form
+      setReturnReason("");
+      setSelectedAsset(null);
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Error creating return request:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getAssetDisplayName = (asset: Asset): string => {
     // First try to use the asset name
     if (asset.name) {
       return asset.name;
@@ -66,13 +104,13 @@ export default function MyAssets() {
 
     // Then try to find the "Name" field in data
     if (asset.data?.Name) {
-      return asset.data.Name;
+      return String(asset.data.Name);
     }
 
     // Finally fall back to template name with first required field value
     const firstRequiredField = asset.template_id.fields.find(field => field.required);
     if (firstRequiredField && asset.data?.[firstRequiredField.label]) {
-      return `${asset.template_id.name} - ${asset.data[firstRequiredField.label]}`;
+      return `${asset.template_id.name} - ${String(asset.data[firstRequiredField.label])}`;
     }
 
     // If nothing else, just show template name
@@ -109,18 +147,19 @@ export default function MyAssets() {
               <TableHead>Key Details</TableHead>
               <TableHead>Assigned Date</TableHead>
               <TableHead className="w-[100px]">Status</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Loading assets...
                 </TableCell>
               </TableRow>
             ) : assets.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   No assets assigned to you
                 </TableCell>
               </TableRow>
@@ -158,9 +197,59 @@ export default function MyAssets() {
                     {new Date(asset.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="success">
+                    <Badge variant="secondary">
                       Active
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Dialog open={dialogOpen && selectedAsset?._id === asset._id} onOpenChange={(open) => {
+                      setDialogOpen(open);
+                      if (!open) {
+                        setSelectedAsset(null);
+                        setReturnReason("");
+                      }
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setSelectedAsset(asset)}
+                        >
+                          Return
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Return Asset</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium">Asset</p>
+                            <p className="text-sm text-muted-foreground">
+                              {getAssetDisplayName(asset)}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                              Reason for Return
+                            </label>
+                            <Textarea
+                              placeholder="Please provide a reason for returning this asset"
+                              value={returnReason}
+                              onChange={(e) => setReturnReason(e.target.value)}
+                              className="min-h-[100px]"
+                            />
+                          </div>
+                          <Button 
+                            className="w-full" 
+                            onClick={handleReturnRequest}
+                            disabled={isSubmitting || !returnReason.trim()}
+                          >
+                            {isSubmitting ? "Submitting..." : "Submit Return Request"}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </TableCell>
                 </TableRow>
               ))
