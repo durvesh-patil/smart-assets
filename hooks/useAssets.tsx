@@ -8,7 +8,6 @@ export default function useAssets() {
     async function getdata() {
       const data = await axios.get(API_URL + "/assets");
       if (data.status === 200) {
-        console.log(data.data.assets);
         setAssetsList(data.data.assets);
       }
     }

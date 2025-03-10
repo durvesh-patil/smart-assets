@@ -207,7 +207,6 @@ export default function Requests() {
   const pendingRequests = requests.filter(
     (r) => r.status === RequestStatus.PENDING
   );
-  console.log("pendingRequests", pendingRequests);
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex justify-between items-start w-full">

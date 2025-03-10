@@ -51,7 +51,6 @@ export async function GET(req: NextRequest) {
         }
       })
       .sort({ created_at: -1 });
-    console.log("requests", requests);
     // Transform the response to match the expected format
     const transformedRequests = requests.map((request) => {
       const obj = request.toObject();
@@ -90,7 +89,6 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     const body = await req.json();
-    console.log("body", body);
 
     // Create new request with required fields
     const request = await Request.create({
