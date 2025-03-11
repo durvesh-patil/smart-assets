@@ -47,7 +47,6 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     const { created_by, assigned_to, template_id, data } = await req.json();
-    console.log(created_by, assigned_to, template_id, data);
 
     const newAsset = await Asset.create({
       created_by,

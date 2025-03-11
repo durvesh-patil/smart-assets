@@ -28,7 +28,6 @@ export default function useRegisterForm() {
           email,
           password,
         });
-        console.log(res);
         if (res.status === 201) {
           showSnackbar(res.data.message, "success");
           router.push("/login");

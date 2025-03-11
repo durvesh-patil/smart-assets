@@ -53,7 +53,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { RequestType, RequestStatus, type Request, type Employee, type AssetTemplate } from "@/app/types/request";
+import {
+  RequestType,
+  RequestStatus,
+  type Request,
+  type Employee,
+  type AssetTemplate,
+} from "@/app/types/request";
 
 export default function Requests() {
   const [requests, setRequests] = useState<Request[]>([]);
@@ -72,7 +78,9 @@ export default function Requests() {
     transfer_to: "",
     replacement_reason: "",
   });
-  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<RequestStatus | "all">(
+    "all"
+  );
   const [typeFilter, setTypeFilter] = useState<RequestType | "all">("all");
 
   useEffect(() => {
@@ -86,10 +94,10 @@ export default function Requests() {
     try {
       let url = `${API_URL}/requests`;
       const params = new URLSearchParams();
-      
+
       if (statusFilter !== "all") params.append("status", statusFilter);
       if (typeFilter !== "all") params.append("type", typeFilter);
-      
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
@@ -125,9 +133,9 @@ export default function Requests() {
   };
 
   const handleInputChange = (name: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -143,10 +151,13 @@ export default function Requests() {
     }
   };
 
-  const handleStatusChange = async (requestId: string, newStatus: RequestStatus) => {
+  const handleStatusChange = async (
+    requestId: string,
+    newStatus: RequestStatus
+  ) => {
     try {
       await axios.put(`${API_URL}/requests/${requestId}`, {
-        status: newStatus
+        status: newStatus,
       });
       fetchRequests();
       setSelectedRequest(null);
@@ -193,8 +204,9 @@ export default function Requests() {
     }
   };
 
-  const pendingRequests = requests.filter(r => r.status === RequestStatus.PENDING);
-
+  const pendingRequests = requests.filter(
+    (r) => r.status === RequestStatus.PENDING
+  );
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex justify-between items-start w-full">
@@ -218,12 +230,12 @@ export default function Requests() {
             <form onSubmit={handleSubmit} className="space-y-6 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Request Type *
-                  </label>
+                  <label className="text-sm font-medium">Request Type *</label>
                   <Select
                     value={formData.request_type}
-                    onValueChange={(value) => handleInputChange("request_type", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("request_type", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -239,12 +251,12 @@ export default function Requests() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Employee *
-                  </label>
+                  <label className="text-sm font-medium">Employee *</label>
                   <Select
                     value={formData.employee}
-                    onValueChange={(value) => handleInputChange("employee", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("employee", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select employee" />
@@ -265,7 +277,9 @@ export default function Requests() {
                   </label>
                   <Select
                     value={formData.asset_template}
-                    onValueChange={(value) => handleInputChange("asset_template", value)}
+                    onValueChange={(value) =>
+                      handleInputChange("asset_template", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select template" />
@@ -281,25 +295,25 @@ export default function Requests() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Asset ID *
-                  </label>
+                  <label className="text-sm font-medium">Asset ID *</label>
                   <Input
                     placeholder="Enter asset ID"
                     value={formData.asset_id}
-                    onChange={(e) => handleInputChange("asset_id", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("asset_id", e.target.value)
+                    }
                     required
                   />
                 </div>
 
                 {formData.request_type === RequestType.TRANSFER && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      Transfer To *
-                    </label>
+                    <label className="text-sm font-medium">Transfer To *</label>
                     <Select
                       value={formData.transfer_to}
-                      onValueChange={(value) => handleInputChange("transfer_to", value)}
+                      onValueChange={(value) =>
+                        handleInputChange("transfer_to", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select employee" />
@@ -323,20 +337,24 @@ export default function Requests() {
                     <Input
                       placeholder="Enter replacement reason"
                       value={formData.replacement_reason}
-                      onChange={(e) => handleInputChange("replacement_reason", e.target.value)}
-                      required={formData.request_type === RequestType.REPLACEMENT}
+                      onChange={(e) =>
+                        handleInputChange("replacement_reason", e.target.value)
+                      }
+                      required={
+                        formData.request_type === RequestType.REPLACEMENT
+                      }
                     />
                   </div>
                 )}
 
                 <div className="space-y-2 col-span-2">
-                  <label className="text-sm font-medium">
-                    Reason *
-                  </label>
+                  <label className="text-sm font-medium">Reason *</label>
                   <Input
                     placeholder="Enter reason for request"
                     value={formData.reason}
-                    onChange={(e) => handleInputChange("reason", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("reason", e.target.value)
+                    }
                     required
                   />
                 </div>
@@ -390,7 +408,9 @@ export default function Requests() {
                 <Card key={request._id} className="relative">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
-                      <span className="capitalize">{request.request_type} Request</span>
+                      <span className="capitalize">
+                        {request.request_type} Request
+                      </span>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -400,28 +420,55 @@ export default function Requests() {
                       </Button>
                     </CardTitle>
                     <CardDescription>
-                      From: {request.employee.fullName}
+                      From: {request.employee?.email || "Unassigned"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Asset:</span>
-                        <span>{request.asset_template.name}</span>
+                        <span>
+                          {request.asset?.data?.Name ||
+                            request.asset?.template_id?.name ||
+                            "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Template:</span>
+                        <span>{request.asset?.template_id?.name || "N/A"}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Created:</span>
-                        <span>{new Date(request.created_at).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(request.created_at).toLocaleDateString()}
+                        </span>
                       </div>
                       <div className="border-t pt-2 mt-2">
                         <p className="text-sm font-medium">Reason:</p>
-                        <p className="text-sm text-muted-foreground">{request.reason}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {request.reason}
+                        </p>
                       </div>
+                      {request.notes && (
+                        <div className="border-t pt-2 mt-2">
+                          <p className="text-sm font-medium">
+                            Additional Notes:
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {request.notes}
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-2 justify-end pt-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleStatusChange(request._id, RequestStatus.APPROVED)}
+                          onClick={() =>
+                            handleStatusChange(
+                              request._id,
+                              RequestStatus.APPROVED
+                            )
+                          }
                           className="hover:bg-green-100 hover:text-green-600"
                         >
                           <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -430,7 +477,12 @@ export default function Requests() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleStatusChange(request._id, RequestStatus.REJECTED)}
+                          onClick={() =>
+                            handleStatusChange(
+                              request._id,
+                              RequestStatus.REJECTED
+                            )
+                          }
                           className="hover:bg-red-100 hover:text-red-600"
                         >
                           <XCircle className="h-4 w-4 mr-2" />
@@ -447,10 +499,13 @@ export default function Requests() {
 
         <TabsContent value="all">
           <div className="flex items-center gap-4 mb-4">
-            <Select value={statusFilter} onValueChange={(value: RequestStatus | "all") => {
-              setStatusFilter(value);
-              fetchRequests();
-            }}>
+            <Select
+              value={statusFilter}
+              onValueChange={(value: RequestStatus | "all") => {
+                setStatusFilter(value);
+                fetchRequests();
+              }}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
@@ -464,10 +519,13 @@ export default function Requests() {
               </SelectContent>
             </Select>
 
-            <Select value={typeFilter} onValueChange={(value: RequestType | "all") => {
-              setTypeFilter(value);
-              fetchRequests();
-            }}>
+            <Select
+              value={typeFilter}
+              onValueChange={(value: RequestType | "all") => {
+                setTypeFilter(value);
+                fetchRequests();
+              }}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
@@ -517,13 +575,15 @@ export default function Requests() {
                           </Tooltip>
                         </TooltipProvider>
                       </TableCell>
-                      <TableCell className="capitalize">{request.request_type}</TableCell>
-                      <TableCell>{request.employee.fullName}</TableCell>
+                      <TableCell className="capitalize">
+                        {request.request_type}
+                      </TableCell>
+                      <TableCell>{request.employee?.email}</TableCell>
                       <TableCell>
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger className="cursor-help">
-                              {request.asset_template.name}
+                              {request.asset_template}
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>Asset ID: {request.asset_id}</p>
@@ -533,7 +593,8 @@ export default function Requests() {
                       </TableCell>
                       <TableCell>
                         <span className={getStatusColor(request.status)}>
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                          {request.status.charAt(0).toUpperCase() +
+                            request.status.slice(1)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -546,7 +607,12 @@ export default function Requests() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleStatusChange(request._id, RequestStatus.APPROVED)}
+                                onClick={() =>
+                                  handleStatusChange(
+                                    request._id,
+                                    RequestStatus.APPROVED
+                                  )
+                                }
                                 className="hover:bg-green-100 hover:text-green-600"
                               >
                                 <CheckCircle2 className="h-4 w-4" />
@@ -554,7 +620,12 @@ export default function Requests() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleStatusChange(request._id, RequestStatus.REJECTED)}
+                                onClick={() =>
+                                  handleStatusChange(
+                                    request._id,
+                                    RequestStatus.REJECTED
+                                  )
+                                }
                                 className="hover:bg-red-100 hover:text-red-600"
                               >
                                 <XCircle className="h-4 w-4" />
@@ -573,9 +644,12 @@ export default function Requests() {
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Request</AlertDialogTitle>
+                                <AlertDialogTitle>
+                                  Delete Request
+                                </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete this request? This action cannot be undone.
+                                  Are you sure you want to delete this request?
+                                  This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -601,7 +675,10 @@ export default function Requests() {
       </Tabs>
 
       {selectedRequest && (
-        <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+        <Dialog
+          open={!!selectedRequest}
+          onOpenChange={() => setSelectedRequest(null)}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Request Details</DialogTitle>
@@ -616,20 +693,25 @@ export default function Requests() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">Status</p>
-                  <p className={`text-sm ${getStatusColor(selectedRequest.status)}`}>
-                    {selectedRequest.status.charAt(0).toUpperCase() + selectedRequest.status.slice(1)}
+                  <p
+                    className={`text-sm ${getStatusColor(
+                      selectedRequest.status
+                    )}`}
+                  >
+                    {selectedRequest.status.charAt(0).toUpperCase() +
+                      selectedRequest.status.slice(1)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Employee</p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRequest.employee.fullName}
+                    {selectedRequest.employee?.email}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium">Asset Template</p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRequest.asset_template.name}
+                    {selectedRequest.asset_template}
                   </p>
                 </div>
                 <div>
@@ -662,29 +744,36 @@ export default function Requests() {
                 </div>
               )}
 
-              {selectedRequest.request_type === RequestType.TRANSFER && selectedRequest.transfer_to && (
-                <div>
-                  <p className="text-sm font-medium">Transfer To</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedRequest.transfer_to.fullName}
-                  </p>
-                </div>
-              )}
+              {selectedRequest.request_type === RequestType.TRANSFER &&
+                selectedRequest.transfer_to && (
+                  <div>
+                    <p className="text-sm font-medium">Transfer To</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedRequest.transfer_to.fullName}
+                    </p>
+                  </div>
+                )}
 
-              {selectedRequest.request_type === RequestType.REPLACEMENT && selectedRequest.replacement_reason && (
-                <div>
-                  <p className="text-sm font-medium">Replacement Reason</p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedRequest.replacement_reason}
-                  </p>
-                </div>
-              )}
+              {selectedRequest.request_type === RequestType.REPLACEMENT &&
+                selectedRequest.replacement_reason && (
+                  <div>
+                    <p className="text-sm font-medium">Replacement Reason</p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedRequest.replacement_reason}
+                    </p>
+                  </div>
+                )}
 
               {selectedRequest.status === RequestStatus.PENDING && (
                 <div className="flex gap-2 justify-end pt-4">
                   <Button
                     variant="outline"
-                    onClick={() => handleStatusChange(selectedRequest._id, RequestStatus.APPROVED)}
+                    onClick={() =>
+                      handleStatusChange(
+                        selectedRequest._id,
+                        RequestStatus.APPROVED
+                      )
+                    }
                     className="hover:bg-green-100 hover:text-green-600"
                   >
                     <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -692,7 +781,12 @@ export default function Requests() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => handleStatusChange(selectedRequest._id, RequestStatus.REJECTED)}
+                    onClick={() =>
+                      handleStatusChange(
+                        selectedRequest._id,
+                        RequestStatus.REJECTED
+                      )
+                    }
                     className="hover:bg-red-100 hover:text-red-600"
                   >
                     <XCircle className="h-4 w-4 mr-2" />
@@ -706,4 +800,4 @@ export default function Requests() {
       )}
     </div>
   );
-} 
+}

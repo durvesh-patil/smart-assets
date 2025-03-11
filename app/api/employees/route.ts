@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Employee from '@/app/models/Employee';
+import User from '@/app/models/User';
+import bcrypt from 'bcryptjs';
 
 // GET /api/employees
 export async function GET() {
@@ -29,7 +31,18 @@ export async function POST(req: NextRequest) {
     
     const employeeData = await req.json();
     
+    // Create the employee
     const newEmployee = await Employee.create(employeeData);
+
+    // Create a user account with the employee's email
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('password', salt);
+
+    await User.create({
+      email: employeeData.emailId,
+      password_hash: hashedPassword,
+      role: 'user'
+    });
     
     return NextResponse.json({
       success: true,

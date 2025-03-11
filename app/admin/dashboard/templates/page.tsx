@@ -58,7 +58,9 @@ export default function Templates() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [templateName, setTemplateName] = useState("");
-  const [fields, setFields] = useState<TemplateField[]>([]);
+  const [fields, setFields] = useState<TemplateField[]>([
+    { label: "Name", type: "text", required: false }
+  ]);
 
   useEffect(() => {
     fetchTemplates();
@@ -157,6 +159,7 @@ export default function Templates() {
                           handleFieldChange(index, { label: e.target.value })
                         }
                         required
+                        disabled={field.label === "Name"}
                       />
                       <div className="flex gap-2">
                         <select
@@ -165,6 +168,7 @@ export default function Templates() {
                           onChange={(e) =>
                             handleFieldChange(index, { type: e.target.value })
                           }
+                          disabled={field.label === "Name"}
                         >
                           <option value="text">Text</option>
                           <option value="number">Number</option>
@@ -191,6 +195,7 @@ export default function Templates() {
                       variant="ghost"
                       size="icon"
                       onClick={() => handleRemoveField(index)}
+                      disabled={field.label === "Name"}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

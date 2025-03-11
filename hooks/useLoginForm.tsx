@@ -23,8 +23,12 @@ export default function useLoginForm() {
           email,
           password,
         });
-        if (res.status === 200) {
-          console.log(res.data.message);
+        if (res.data.success) {
+          // Store the token and user data
+          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          localStorage.setItem("role", res.data.user.role);
+          
           showSnackbar(res.data.message, "success");
           router.push("/dashboard");
           return;

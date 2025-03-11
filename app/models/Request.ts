@@ -50,7 +50,7 @@ const RequestSchema: Schema = new Schema({
   },
   employee: { 
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: true 
   },
   asset_id: { 
@@ -60,7 +60,6 @@ const RequestSchema: Schema = new Schema({
   asset_template: {
     type: Schema.Types.ObjectId,
     ref: 'AssetTemplate',
-    required: true
   },
   reason: { 
     type: String,
@@ -73,7 +72,7 @@ const RequestSchema: Schema = new Schema({
   // For transfer requests
   transfer_to: { 
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: false 
   },
   // For replacement requests
@@ -84,7 +83,7 @@ const RequestSchema: Schema = new Schema({
   // Common fields
   approved_by: { 
     type: Schema.Types.ObjectId,
-    ref: 'Employee',
+    ref: 'User',
     required: false 
   },
   approved_at: { 

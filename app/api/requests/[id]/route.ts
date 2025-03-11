@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import Request, { RequestStatus } from '@/app/models/Request';
+import Request, { RequestStatus, RequestType } from '@/app/models/Request';
+import Asset from '@/app/models/Asset';
 
 interface Params {
   params: {
@@ -49,9 +50,42 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const { id } = params;
     const updateData = await req.json();
     
-    // If status is being updated to APPROVED, set approved_at
-    if (updateData.status === RequestStatus.APPROVED && !updateData.approved_at) {
+    // Get the current request to check its type
+    const currentRequest = await Request.findById(id);
+    if (!currentRequest) {
+      return NextResponse.json({
+        success: false,
+        message: 'Request not found'
+      }, { status: 404 });
+    }
+
+    // If status is being updated to APPROVED
+    if (updateData.status === RequestStatus.APPROVED) {
       updateData.approved_at = new Date();
+
+      // Update asset assignment based on request type
+      if (currentRequest.asset_id) {
+        switch (currentRequest.request_type) {
+          case RequestType.TRANSFER:
+            // For transfer requests, assign the asset to the employee
+            await Asset.findByIdAndUpdate(currentRequest.asset_id, {
+              assigned_to: currentRequest.employee
+            });
+            break;
+          case RequestType.RETURN:
+            // For return requests, remove the assignment
+            await Asset.findByIdAndUpdate(currentRequest.asset_id, {
+              assigned_to: null
+            });
+            break;
+          case RequestType.REPLACEMENT:
+            // For replacement requests, assign the new asset to the employee
+            await Asset.findByIdAndUpdate(currentRequest.asset_id, {
+              assigned_to: currentRequest.employee
+            });
+            break;
+        }
+      }
     }
     
     // If status is being updated to COMPLETED, set completed_at
@@ -66,14 +100,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
     ).populate('employee', 'employeeNo fullName')
      .populate('transfer_to', 'employeeNo fullName')
      .populate('approved_by', 'employeeNo fullName')
-     .populate('asset_template', 'name');
-    
-    if (!updatedRequest) {
-      return NextResponse.json({
-        success: false,
-        message: 'Request not found'
-      }, { status: 404 });
-    }
+     .populate({
+       path: 'asset_id',
+       populate: {
+         path: 'template_id',
+         select: 'name fields'
+       }
+     });
     
     return NextResponse.json({
       success: true,
